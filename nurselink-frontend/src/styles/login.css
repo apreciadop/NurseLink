@@ -1,0 +1,151 @@
+body {
+  font-family: 'Inter', sans-serif;
+  margin: 0;
+}
+
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #f3f4f6;
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 360px;
+  background: #fff;
+  border: 1px solid #d8dbe2;
+  border-radius: 10px;
+  padding: 22px 22px 18px;
+  box-sizing: border-box;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.logo {
+  width: 160px;
+  max-width: 100%;
+  display: block;
+  margin: 0 auto 4px;
+}
+
+.login-card h2 {
+  text-align: center;
+  margin: 4px 0 10px;
+  color: #667085;   
+  font-size: 1.05rem;
+  font-weight: 600;
+  line-height: 1.2;  
+}
+
+.form-group {
+  margin-bottom: 12px;
+}
+
+label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #667085;
+}
+
+input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border: 1px solid #667085;
+  border-radius: 6px;
+  color: #667085;
+  font-size: 0.95rem;
+  background: #fff;
+}
+
+input::placeholder {
+  color: #98a2b3;
+}
+
+input:focus {
+  outline: none;
+  border-color: #2F5DA8;
+  box-shadow: 0 0 0 3px rgba(47, 93, 168, 0.12);
+}
+
+button {
+  width: 100%;
+  padding: 11px;
+  border: none;
+  border-radius: 6px;
+  background: #2F5DA8;
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.error {
+  color: #dc2626;
+  margin-top: 12px;
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+.forgot-password {
+  display: block;
+  text-align: center;
+  margin-top: 14px;
+  color: #3B82F6;
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.forgot-password:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 480px) {
+  .login-page {
+    padding: 12px;
+  }
+
+  .login-card {
+    max-width: 100%;
+    padding: 18px 16px 16px;
+    border-radius: 8px;
+  }
+
+  .logo {
+    width: 140px;
+    margin-bottom: 6px;
+  }
+
+  .login-card h2 {
+    font-size: 1.05rem;
+    margin-bottom: 14px;
+  }
+
+  label {
+    font-size: 0.9rem;
+  }
+
+  input {
+    padding: 10px;
+    font-size: 0.9rem;
+  }
+
+  button {
+    padding: 10px;
+    font-size: 0.9rem;
+  }
+
+  .forgot-password {
+    font-size: 13px;
+  }
+}
