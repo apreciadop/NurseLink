@@ -1,61 +1,136 @@
-NurseLink
-NurseLink is a web-based healthcare communication platform developed as a Final Degree Project (TFG).
+# NurseLink
 
-The system allows communication and management between nurses, patients, and administrators through a centralized digital solution.
+NurseLink is a web application designed to improve post-operative
+patient follow-up developed as a Final Degree Project (TFG).
 
-Project Structure
-NurseLink
+------------------------------------------------------------------------
 
--- NurseLink.API/ # Backend (ASP.NET Core Web API)
+## 🏥 Overview
 
--- nurselink-frontend/ # Frontend (Vue 3)
+The system enables patients to report their recovery status and
+communicate with their assigned nurse, while healthcare professionals
+can monitor patient progress and manage follow-up care efficiently.
 
--- Database/ # SQL scripts (schema + seed)
+------------------------------------------------------------------------
 
-Technologies Used
-Frontend
-Vue 3
-Vite
-JavaScript
-CSS
-Backend
-ASP.NET Core Web API
-Entity Framework Core
-SQL Server
-JWT Authentication
-Authentication
-The system uses JWT (JSON Web Tokens) for authentication.
+## 👥 User Roles
 
-Roles:
+### Administrator
 
-Administrator
-Nurse
-Patient
-Database Setup
-Execute Database/schema.sql
-Execute Database/seed.sql
-This will create the database structure and insert default users for testing.
+-   Manages users (nurses and patients)
+-   Oversees system data
 
-Run the Project
-Backend
-Navigate to: NurseLink.API Run
+### Nurse
 
-API available at: https://localhost:7186
+-   Monitors assigned patients
+-   Reviews symptom reports
+-   Communicates with patients
 
-Swagger: https://localhost:7186/swagger
+### Patient
 
-Frontend
-Navigate to: nurselink-frontend Install dependencies:
+-   Reports post-operative symptoms
+-   Tracks recovery progress
+-   Communicates with assigned nurse
 
-npm install
-Run: npm run dev
+------------------------------------------------------------------------
 
-Frontend available at: http://localhost:5173
+## 🧱 System Architecture
 
-Current Features
-JWT Authentication
-Role-based login
-Temporary Dashboard per role (Admin, Nurse, Patient)
-Author
-Alejandro Preciado Pérez
-Final Degree Project (TFG)
+The application follows a three-tier architecture:
+
+-   Frontend (Presentation Layer) → Vue 3\
+-   Backend (Business Logic Layer) → ASP.NET Core (C#) with REST API\
+-   Database (Data Layer) → SQL Server
+
+------------------------------------------------------------------------
+
+## 🔐 Authentication
+
+Authentication is implemented using JWT (JSON Web Tokens) with
+role-based authorization.
+
+------------------------------------------------------------------------
+
+## 🗄️ Database Setup
+
+To initialize the database, follow these steps:
+
+### 1. Create the database
+
+USE master; GO
+
+CREATE DATABASE NurseLinkDB; GO
+
+### 2. Select the database
+
+USE NurseLinkDB; GO
+
+### 3. Create the database structure
+
+Execute: Database/Script Database Creation.sql
+
+### 4. Insert initial data
+
+Here you have 2 options:
+- A predefined base data executing the script: Database/Script Database General Data.sql
+- Use Swagger for inserting the base data (administrator, nurses, patients...)
+
+------------------------------------------------------------------------
+
+## 🚀 Running the Application
+
+### Backend (ASP.NET Core)
+
+1.  Open the solution in Visual Studio\
+2.  Run the API project
+
+Swagger: https://localhost:`<port>`/swagger
+
+------------------------------------------------------------------------
+
+### Frontend (Vue 3)
+
+cd nurselink-frontend\
+npm install\
+npm run dev
+
+------------------------------------------------------------------------
+
+## 🧪 API Testing (Swagger)
+
+Using Swagger you can: 
+- Create administrators
+- Get all the administrators
+- Create nurses
+- Get all the nurses
+- Create patients
+- Get all the patients
+- Create surgery types
+- Get all the surgery types
+- Create surgeries
+- Get all the surgeries
+- Authenticate in the system using an email and password. The system will detect if you are an Administrator, Nurse or Patient
+
+------------------------------------------------------------------------
+
+## 📁 Project Structure
+
+NurseLink/\
+├── Database/\
+├── NurseLink.API/\
+├── nurselink-frontend/
+
+------------------------------------------------------------------------
+
+## 📦 Technologies Used
+
+-   ASP.NET Core\
+-   Vue 3\
+-   SQL Server\
+-   JWT
+
+------------------------------------------------------------------------
+
+## 👨‍💻 Author
+
+Alejandro Preciado
