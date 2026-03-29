@@ -3,7 +3,7 @@ GO
 
 /* =========================================
    USERS: 0-> administrator, 1-> nurse, 2-> patient
-   ========================================= */ 
+   ========================================= */
 CREATE TABLE Users (
     user_id INT IDENTITY(1,1) PRIMARY KEY,
     user_role INT NOT NULL,
@@ -98,6 +98,7 @@ CREATE TABLE Surgeries (
     surgery_date DATE NOT NULL,
     surgeryType_id INT NOT NULL,
     patient_id INT NOT NULL,
+    surgery_notes VARCHAR(1000) NULL,
     created_at DATETIME NOT NULL DEFAULT GETDATE(),
     CONSTRAINT FK_Surgeries_SurgeryTypes 
         FOREIGN KEY (surgeryType_id) REFERENCES SurgeryTypes(surgeryType_id),
