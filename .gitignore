@@ -1,0 +1,21 @@
+# Node (Vue)
+node_modules/
+dist/
+.env
+.env.local
+
+# Logs
+*.log
+
+# .NET
+bin/
+obj/
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+
+# OS
+.DS_Store
+Thumbs.db
