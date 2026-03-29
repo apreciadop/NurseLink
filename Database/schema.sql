@@ -1,36 +1,67 @@
 USE NurseLinkDB;
 GO
 
--- =========================
--- NURSES
--- =========================
-CREATE TABLE Nurses (
-    nurse_id INT IDENTITY(1,1) PRIMARY KEY,
-    nurse_name NVARCHAR(255) NOT NULL,
-    nurse_surname NVARCHAR(255) NOT NULL,
-    nurse_email NVARCHAR(255) NOT NULL UNIQUE,
-    nurse_password NVARCHAR(255) NOT NULL,
-    nurse_active BIT NOT NULL DEFAULT 1,
-    nurse_photo NVARCHAR(255) NULL,
-    created_at DATETIME NOT NULL DEFAULT GETDATE()
+/* =========================================
+   USERS: 0-> administrator, 1-> nurse, 2-> patient
+   ========================================= */ 
+CREATE TABLE Users (
+    user_id INT IDENTITY(1,1) PRIMARY KEY,
+    user_role INT NOT NULL,
+    user_name VARCHAR(100) NOT NULL,
+    user_surname VARCHAR(150) NOT NULL,
+    user_email VARCHAR(255) NOT NULL,
+    user_password VARCHAR(255) NOT NULL,
+    user_active BIT NOT NULL DEFAULT 1,
+    user_birthdate DATE NULL,
+    user_phone VARCHAR(30) NULL,
+    user_photo VARCHAR(500) NULL,
+    created_at DATETIME NOT NULL DEFAULT GETDATE(),
+
+    CONSTRAINT UQ_Users_Email UNIQUE (user_email),
+    CONSTRAINT CK_Users_Role CHECK (user_role IN (0,1,2))
 );
 GO
 
--- =========================
--- PATIENTS
--- =========================
+/* =========================================
+   ADMINISTRATORS (1:1 with Users)
+   ========================================= */
+CREATE TABLE Administrators (
+    admin_id INT IDENTITY(1,1) PRIMARY KEY,
+    user_id INT NOT NULL UNIQUE,
+    created_at DATETIME NOT NULL DEFAULT GETDATE(),
+
+    CONSTRAINT FK_Administrators_Users
+        FOREIGN KEY (user_id) REFERENCES Users(user_id)
+        ON DELETE CASCADE
+);
+GO
+
+/* =========================================
+   NURSES (1:1 with Users)
+   ========================================= */
+CREATE TABLE Nurses (
+    nurse_id INT IDENTITY(1,1) PRIMARY KEY,
+    user_id INT NOT NULL UNIQUE,
+    created_at DATETIME NOT NULL DEFAULT GETDATE(),
+
+    CONSTRAINT FK_Nurses_Users
+        FOREIGN KEY (user_id) REFERENCES Users(user_id)
+        ON DELETE CASCADE
+);
+GO
+
+/* =========================================
+   PATIENTS (1:1 with Users)
+   ========================================= */
 CREATE TABLE Patients (
     patient_id INT IDENTITY(1,1) PRIMARY KEY,
-    patient_name NVARCHAR(255) NOT NULL,
-    patient_surname NVARCHAR(255) NOT NULL,
-    patient_email NVARCHAR(255) NOT NULL UNIQUE,
-    patient_password NVARCHAR(255) NOT NULL,
-    patient_birthdate DATE NULL,
-    patient_active BIT NOT NULL DEFAULT 1,
-    patient_phone NVARCHAR(255) NULL,
-    patient_photo NVARCHAR(255) NULL,
-    patient_observations NVARCHAR(MAX) NULL,
-    created_at DATETIME NOT NULL DEFAULT GETDATE()
+    user_id INT NOT NULL UNIQUE,
+    patient_observations VARCHAR(1000) NULL,
+    created_at DATETIME NOT NULL DEFAULT GETDATE(),
+
+    CONSTRAINT FK_Patients_Users
+        FOREIGN KEY (user_id) REFERENCES Users(user_id)
+        ON DELETE CASCADE
 );
 GO
 
@@ -131,7 +162,5 @@ CREATE TABLE Messages (
     created_at DATETIME NOT NULL DEFAULT GETDATE(),
     CONSTRAINT FK_Messages_Conversations 
         FOREIGN KEY (conversation_id) REFERENCES Conversations(conversation_id),
-    CONSTRAINT CHK_Messages_Sender 
-        CHECK (message_sender IN (0,1))
 );
 GO
