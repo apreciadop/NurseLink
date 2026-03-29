@@ -84,7 +84,7 @@ Here you have 2 options:
 1.  Open the solution in Visual Studio\
 2.  Run the API project
 
-Swagger: https://localhost:`<port>`/swagger
+Swagger: https://localhost:{port}/swagger
 
 ------------------------------------------------------------------------
 
