@@ -12,10 +12,47 @@ export async function loginUser(email, password) {
     })
   })
 
-  if (!response.ok) {
-    const text = await response.text()
-    throw new Error(text || 'Login failed')
+  let data = {}
+
+  try {
+    data = await response.json()
+  } catch {
+    data = {}
   }
 
-  return await response.json()
+  if (!response.ok) {
+    throw new Error(data.message || 'Login failed.')
+  }
+
+  return data
+}
+
+export function getAuthToken() {
+  return localStorage.getItem('token')
+}
+
+export function getUserRole() {
+  return localStorage.getItem('role')
+}
+
+export function getAuthHeaders() {
+  const token = getAuthToken()
+
+  return {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${token}`
+  }
+}
+
+export function logoutUser() {
+  localStorage.removeItem('token')
+  localStorage.removeItem('role')
+  localStorage.removeItem('userName')
+  localStorage.removeItem('name')
+  localStorage.removeItem('fullName')
+  localStorage.removeItem('user')
+  localStorage.removeItem('userId')
+  localStorage.removeItem('email')
+  localStorage.removeItem('nurseId')
+  localStorage.removeItem('patientId')
 }

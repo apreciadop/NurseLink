@@ -26,7 +26,7 @@ namespace NurseLink.API.Domain.Entities
         public User User { get; set; } = null!;
 
         public Assignment? Assignment { get; set; }
-        public Surgery? Surgery { get; set; }
+        public Surgery Surgery { get; set; } = null!;
         public ICollection<Report> Reports { get; set; } = new List<Report>();
         public Conversation? Conversation { get; set; }
     }

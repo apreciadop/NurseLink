@@ -45,9 +45,7 @@ namespace NurseLink.API.Controllers
                     .FirstOrDefaultAsync(u => u.UserEmail == request.Email && u.UserActive);
 
                 if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.UserPassword))
-                {
-                    return Unauthorized("Invalid credentials.");
-                }
+                    return Unauthorized("Invalid credentials or user inactive.");
 
                 switch ((UserRole)user.UserRole)
                 {
@@ -58,9 +56,7 @@ namespace NurseLink.API.Controllers
                                 .FirstOrDefaultAsync(a => a.UserId == user.UserId);
 
                             if (admin == null)
-                            {
                                 return Unauthorized("Administrator profile not found.");
-                            }
 
                             var fullName = admin.User.UserName + " " + admin.User.UserSurname;
 
@@ -87,9 +83,7 @@ namespace NurseLink.API.Controllers
                                 .FirstOrDefaultAsync(n => n.UserId == user.UserId);
 
                             if (nurse == null)
-                            {
                                 return Unauthorized("Nurse profile not found.");
-                            }
 
                             var fullName = nurse.User.UserName + " " + nurse.User.UserSurname;
 
@@ -116,9 +110,7 @@ namespace NurseLink.API.Controllers
                                 .FirstOrDefaultAsync(p => p.UserId == user.UserId);
 
                             if (patient == null)
-                            {
                                 return Unauthorized("Patient profile not found.");
-                            }
 
                             var fullName = patient.User.UserName + " " + patient.User.UserSurname;
 
@@ -159,9 +151,7 @@ namespace NurseLink.API.Controllers
             };
 
             if (userId.HasValue)
-            {
                 claims.Add(new Claim(ClaimTypes.NameIdentifier, userId.Value.ToString()));
-            }
 
             var key = new SymmetricSecurityKey(
                 Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));

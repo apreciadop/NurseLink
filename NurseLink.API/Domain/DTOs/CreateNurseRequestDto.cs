@@ -13,22 +13,23 @@ namespace NurseLink.API.Domain.DTOs
         public string Surname { get; set; } = string.Empty;
 
         [Required]
-        [EmailAddress]
+        [EmailAddress(ErrorMessage = "Email format is invalid.")]
         [MaxLength(255)]
         public string Email { get; set; } = string.Empty;
 
         [Required]
-        [MinLength(6)]
         [MaxLength(255)]
         [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).+$", ErrorMessage = "Password must contain at least one uppercase letter, one lowercase letter, one number and one special character.")]
         public string Password { get; set; } = string.Empty;
 
+        [Required]
+        [DataType(DataType.Date)]
         public DateTime? Birthdate { get; set; }
+
 
         [MaxLength(30)]
         public string? Phone { get; set; }
 
-        [MaxLength(500)]
         public string? Photo { get; set; }
     }
 }

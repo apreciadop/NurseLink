@@ -11,9 +11,9 @@ namespace NurseLink.API.Controllers
     public class SurgeryTypeController : ControllerBase
     {
         private readonly NurseLinkDbContext _context;
-        private readonly ILogger<AdminController> _logger;
+        private readonly ILogger<SurgeryTypeController> _logger;
 
-        public SurgeryTypeController(NurseLinkDbContext context, ILogger<AdminController> logger)
+        public SurgeryTypeController(NurseLinkDbContext context, ILogger<SurgeryTypeController> logger)
         {
             _context = context;
             _logger = logger;
@@ -26,13 +26,15 @@ namespace NurseLink.API.Controllers
                 return BadRequest("Request body required.");
 
             if (!ModelState.IsValid)
-                return BadRequest("Invalid data. Please check required fields.");
+                return BadRequest(ModelState);
 
-            if (string.IsNullOrWhiteSpace(request.Name)) 
-                return BadRequest("SurgeryType name required.");
+            if (string.IsNullOrWhiteSpace(request.Name))
+                return BadRequest("Surgery type name is required.");
+
+            var normalizedName = request.Name.Trim();
 
             var exists = await _context.SurgeryTypes
-                .AnyAsync(s => s.SurgeryTypeName == request.Name);
+                .AnyAsync(s => s.SurgeryTypeName == normalizedName);
 
             if (exists)
                 return BadRequest("Surgery type already exists.");
@@ -41,7 +43,7 @@ namespace NurseLink.API.Controllers
             {
                 var surgeryType = new SurgeryType
                 {
-                    SurgeryTypeName = request.Name,
+                    SurgeryTypeName = normalizedName,
                     CreatedAt = DateTime.UtcNow
                 };
 
@@ -59,21 +61,22 @@ namespace NurseLink.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error creating surgery type with name {Name}", request.Name);
-                return StatusCode(500, "Error creating Surgery Type.");
+                return StatusCode(500, "Error creating surgery type.");
             }
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<ActionResult<IEnumerable<GetSurgeryTypeResponseDto>>> GetAll()
         {
             try
             {
                 var surgeryTypes = await _context.SurgeryTypes
-                    .Select(s => new
+                    .Select(s => new GetSurgeryTypeResponseDto
                     {
-                        surgeryTypeId = s.SurgeryTypeId,
-                        name = s.SurgeryTypeName
+                        SurgeryTypeId = s.SurgeryTypeId,
+                        Name = s.SurgeryTypeName
                     })
+                    .OrderBy(s => s.Name)
                     .ToListAsync();
 
                 return Ok(surgeryTypes);
@@ -85,4 +88,4 @@ namespace NurseLink.API.Controllers
             }
         }
     }
-}    
+}

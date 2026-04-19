@@ -1,0 +1,364 @@
+.nurse-dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  min-width: 0;
+}
+
+.nurse-dashboard-message {
+  margin: 0;
+  color: var(--color-text-main);
+}
+
+.nurse-dashboard-message-error {
+  color: var(--color-error);
+}
+
+.nurse-dashboard-main {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  min-width: 0;
+}
+
+.nurse-dashboard-tablecard {
+  background: var(--color-card-bg);
+  border: 1px solid var(--color-border-soft);
+  border-radius: 1rem;
+  box-shadow: 0 8px 24px rgba(16, 24, 40, 0.06);
+  overflow: hidden;
+}
+
+.nurse-dashboard-tablehead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--color-border-soft);
+}
+
+.nurse-dashboard-search {
+  width: 100%;
+  max-width: 370px;
+}
+
+.nurse-dashboard-search-input {
+  width: 100%;
+  min-height: 2.7rem;
+  padding: 0 0.95rem;
+  border: 1px solid var(--color-border-soft);
+  border-radius: 0.6rem;
+  background: var(--color-white);
+  color: var(--color-text-main);
+  font: inherit;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.nurse-dashboard-search-input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-light-ring);
+}
+
+.nurse-dashboard-filtersrow {
+  display: flex;
+  align-items: center;
+  gap: 6rem;
+  padding: 0.9rem 1.25rem 1rem;
+  border-bottom: 1px solid var(--color-border-soft);
+  flex-wrap: wrap;
+}
+
+.nurse-dashboard-filtergroup {
+  display: flex;
+  align-items: center;
+  gap: 0.95rem;
+  flex-wrap: wrap;
+}
+
+.nurse-dashboard-statusfilter {
+  margin-left: 3rem;
+}
+
+.nurse-dashboard-filterlabel {
+  color: var(--color-primary);
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin-right: 0.15rem;
+}
+
+.nurse-dashboard-filteroption {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--color-text-main);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.nurse-dashboard-tablebody {
+  padding: 1.1rem 1.25rem 1.25rem;
+}
+
+.nurse-dashboard-tablewrap {
+  width: 100%;
+  overflow-x: auto;
+  background: var(--color-card-bg);
+  border-radius: 0.85rem;
+}
+
+.nurse-dashboard-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  table-layout: auto;
+}
+
+.nurse-dashboard-table thead th {
+  background: var(--color-primary);
+  color: var(--color-white);
+  font-weight: 700;
+  text-align: left;
+  padding: 0.95rem 1rem;
+  white-space: nowrap;
+  font-size: 0.95rem;
+}
+
+.nurse-dashboard-table thead th:first-child {
+  border-top-left-radius: 0.75rem;
+}
+
+.nurse-dashboard-table thead th:last-child {
+  border-top-right-radius: 0.75rem;
+}
+
+.nurse-dashboard-table tbody td {
+  padding: 0.95rem 1rem;
+  text-align: left;
+  color: var(--color-text-main);
+  border-bottom: 1px solid var(--color-border-soft);
+  background: var(--color-card-bg);
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+.nurse-dashboard-table tbody tr:nth-child(even) td {
+  background: var(--color-table-row-alt);
+}
+
+.nurse-dashboard-table tbody tr:hover td {
+  background: var(--color-table-row-hover);
+}
+
+.nurse-dashboard-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.nurse-dashboard-table tbody tr:last-child td:first-child {
+  border-bottom-left-radius: 0.75rem;
+}
+
+.nurse-dashboard-table tbody tr:last-child td:last-child {
+  border-bottom-right-radius: 0.75rem;
+}
+
+.nurse-dashboard-table thead th:nth-child(7),
+.nurse-dashboard-table tbody td:nth-child(7),
+.nurse-dashboard-table thead th:nth-child(8),
+.nurse-dashboard-table tbody td:nth-child(8),
+.nurse-dashboard-table thead th:nth-child(9),
+.nurse-dashboard-table tbody td:nth-child(9) {
+  text-align: center;
+}
+
+.nurse-dashboard-reports-table thead th:nth-child(2),
+.nurse-dashboard-reports-table tbody td:nth-child(2),
+.nurse-dashboard-reports-table thead th:nth-child(7),
+.nurse-dashboard-reports-table tbody td:nth-child(7) {
+  text-align: center;
+}
+
+.nurse-dashboard-row {
+  cursor: pointer;
+}
+
+.nurse-dashboard-row-selected td {
+  background: var(--color-primary-light-ring) !important;
+}
+
+.nurse-dashboard-col-center {
+  text-align: center !important;
+}
+
+.nurse-dashboard-photo {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: rgba(47, 93, 168, 0.04);
+  border: 1px solid var(--color-border-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-placeholder);
+  font-size: 0.7rem;
+  flex-shrink: 0;
+}
+
+.nurse-dashboard-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.nurse-dashboard-activebadge,
+.nurse-dashboard-statusbadge,
+.nurse-dashboard-alertbadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 104px;
+  padding: 0.42rem 0.9rem;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.nurse-dashboard-alertbadge {
+  min-width: 52px;
+}
+
+.nurse-dashboard-activebadge-active {
+  background: var(--color-status-active-bg);
+  color: var(--color-status-active-text);
+}
+
+.nurse-dashboard-activebadge-inactive {
+  background: var(--color-status-inactive-bg);
+  color: var(--color-status-inactive-text);
+}
+
+.nurse-dashboard-statusbadge-stable,
+.nurse-dashboard-alertbadge-stable {
+  background: var(--color-status-stable-bg);
+  color: var(--color-status-stable-text);
+}
+
+.nurse-dashboard-statusbadge-warning,
+.nurse-dashboard-alertbadge-warning {
+  background: var(--color-status-warning-bg);
+  color: var(--color-status-warning-text);
+}
+
+.nurse-dashboard-statusbadge-alert,
+.nurse-dashboard-alertbadge-alert {
+  background: var(--color-status-alert-bg);
+  color: var(--color-status-alert-text);
+}
+
+.nurse-dashboard-empty {
+  text-align: center;
+  color: var(--color-text-placeholder);
+  padding: 2rem 1rem;
+}
+
+.nurse-dashboard-empty-panel {
+  border: 1px dashed var(--color-border-soft);
+  border-radius: 0.85rem;
+  background: rgba(47, 93, 168, 0.03);
+}
+
+.nurse-dashboard-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.85rem;
+  padding: 0 1.25rem 1.15rem;
+}
+
+.nurse-dashboard-pagination-button {
+  width: 2.2rem;
+  height: 2.2rem;
+  border: 1px solid var(--color-border-soft);
+  border-radius: 0.65rem;
+  background: var(--color-card-bg);
+  color: var(--color-text-main);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.nurse-dashboard-pagination-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.nurse-dashboard-pagination-text {
+  color: var(--color-text-main);
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.nurse-dashboard-reporthead {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--color-border-soft);
+}
+
+.nurse-dashboard-reporttitle {
+  margin: 0;
+  color: var(--color-primary);
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.nurse-dashboard-reportpatient {
+  margin-left: 0.4rem;
+  color: var(--color-text-main);
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+@media (max-width: 1100px) {
+  .nurse-dashboard-tablehead {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .nurse-dashboard-search {
+    max-width: none;
+  }
+
+  .nurse-dashboard-filtersrow {
+    gap: 2rem;
+  }
+
+  .nurse-dashboard-statusfilter {
+    margin-left: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .nurse-dashboard-tablebody {
+    padding: 1rem;
+  }
+
+  .nurse-dashboard-table thead th,
+  .nurse-dashboard-table tbody td {
+    padding: 0.85rem 0.9rem;
+  }
+
+  .nurse-dashboard-activebadge,
+  .nurse-dashboard-statusbadge {
+    min-width: 90px;
+    font-size: 0.78rem;
+    padding: 0.38rem 0.72rem;
+  }
+
+  .nurse-dashboard-pagination {
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+}

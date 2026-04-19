@@ -84,7 +84,10 @@ namespace NurseLink.API.Controllers
                     request.PatientId,
                     request.SurgeryTypeId);
 
-                return StatusCode(500, "Error creating surgery for PatientId {PatientId} and SurgeryTypeId {SurgeryTypeId}.");
+                return StatusCode(
+                    500,
+                    "Error creating surgery for PatientId " + request.PatientId + " and SurgeryTypeId " + request.SurgeryTypeId + "."
+                );
             }
         }
 
@@ -105,7 +108,7 @@ namespace NurseLink.API.Controllers
                         patientSurname = s.Patient.User.UserSurname,
                         surgeryTypeId = s.SurgeryTypeId,
                         surgeryTypeName = s.SurgeryType.SurgeryTypeName,
-                        surgeryDate = s.SurgeryDate.ToString("yyyy-MM-dd"),
+                        surgeryDate = s.SurgeryDate,
                         createdAt = s.CreatedAt
                     })
                     .ToListAsync();

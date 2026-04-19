@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using NurseLink.API.Domain.Enums;
 
 namespace NurseLink.API.Domain.Entities
 {
@@ -13,7 +14,7 @@ namespace NurseLink.API.Domain.Entities
 
         [Required]
         [Column("user_role")]
-        public int UserRole { get; set; }
+        public UserRole UserRole { get; set; }
 
         [Required]
         [MaxLength(100)]
@@ -46,7 +47,6 @@ namespace NurseLink.API.Domain.Entities
         [Column("user_phone")]
         public string? UserPhone { get; set; }
 
-        [MaxLength(500)]
         [Column("user_photo")]
         public string? UserPhoto { get; set; }
 

@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using NurseLink.API.Domain.Enums;
 
 namespace NurseLink.API.Domain.Entities
 {
@@ -15,7 +16,7 @@ namespace NurseLink.API.Domain.Entities
         public int PatientId { get; set; }
 
         [Required]
-        [Column("report_date")]
+        [Column("report_date", TypeName = "date")]
         public DateTime ReportDate { get; set; }
 
         [Required]
@@ -35,7 +36,6 @@ namespace NurseLink.API.Domain.Entities
         [Column("report_swelling")]
         public bool ReportSwelling { get; set; } = false;
 
-        [MaxLength(1000)]
         [Column("report_observations")]
         public string? ReportObservations { get; set; }
 
@@ -44,16 +44,14 @@ namespace NurseLink.API.Domain.Entities
         public int ReportAlerts { get; set; } = 0;
 
         [Required]
-        [MaxLength(20)]
         [Column("report_status")]
-        public string ReportStatus { get; set; } = string.Empty;
+        public ReportStatus ReportStatus { get; set; }
 
         [Column("nurse_id")]
         public int? NurseId { get; set; }
 
-        [MaxLength(1000)]
-        [Column("nurse_observations")]
-        public string? NurseObservations { get; set; }
+        [Column("report_nurse_observations")]
+        public string? ReportNurseObservations { get; set; }
 
         [Required]
         [Column("created_at")]

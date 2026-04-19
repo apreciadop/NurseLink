@@ -1,0 +1,311 @@
+.admin-assignments {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  min-width: 0;
+}
+
+.assignments-message {
+  margin: 0;
+  color: var(--color-text-main);
+}
+
+.assignments-message-error {
+  color: var(--color-error);
+}
+
+.assignments-main {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  min-width: 0;
+}
+
+.assignments-toprow {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.assignments-label {
+  color: var(--color-text-main);
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.assignments-nurse-select {
+  width: 360px;
+  min-height: 2.55rem;
+  padding: 0 0.85rem;
+  border: 1px solid var(--color-border-soft);
+  border-radius: 0.6rem;
+  background: var(--color-white);
+  color: var(--color-text-main);
+  font: inherit;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.assignments-nurse-select:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-light-ring);
+}
+
+.assignments-panels {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  min-width: 0;
+}
+
+.assignments-panel {
+  background: var(--color-card-bg);
+  border: 1px solid var(--color-border-soft);
+  border-radius: 1rem;
+  box-shadow: 0 8px 24px rgba(16, 24, 40, 0.06);
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 760px;
+  overflow: hidden;
+}
+
+.assignments-panel-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem 1.1rem;
+  border-bottom: 1px solid var(--color-border-soft);
+}
+
+.assignments-panel-header h2 {
+  margin: 0;
+  color: var(--color-primary);
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.assignments-search {
+  width: 100%;
+  min-height: 2.45rem;
+  padding: 0 0.9rem;
+  border: 1px solid var(--color-border-soft);
+  border-radius: 0.6rem;
+  background: var(--color-white);
+  color: var(--color-text-main);
+  font: inherit;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.assignments-search:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-light-ring);
+}
+
+.assignments-tablebody {
+  flex: 1;
+  min-height: 600px;
+  padding: 1rem 1.1rem 0;
+}
+
+.assignments-tablewrap {
+  width: 100%;
+  overflow-x: auto;
+  border-radius: 0.85rem;
+  background: var(--color-card-bg);
+}
+
+.assignments-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  table-layout: auto;
+}
+
+.assignments-table thead th {
+  background: var(--color-primary);
+  color: var(--color-white);
+  font-weight: 700;
+  text-align: left;
+  padding: 0.9rem 1rem;
+  white-space: nowrap;
+  font-size: 0.95rem;
+}
+
+.assignments-table thead th:first-child {
+  border-top-left-radius: 0.75rem;
+}
+
+.assignments-table thead th:last-child {
+  border-top-right-radius: 0.75rem;
+}
+
+.assignments-table thead th:last-child,
+.assignments-table tbody td:last-child {
+  text-align: center;
+  width: 82px;
+}
+
+.assignments-table tbody td {
+  padding: 0.95rem 1rem;
+  color: var(--color-text-main);
+  font-weight: 600;
+  border-bottom: 1px solid var(--color-border-soft);
+  background: var(--color-card-bg);
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+.assignments-table tbody tr:nth-child(even) td {
+  background: var(--color-table-row-alt);
+}
+
+.assignments-table tbody tr:hover td {
+  background: var(--color-table-row-hover);
+}
+
+.assignments-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.assignments-table tbody tr:last-child td:first-child {
+  border-bottom-left-radius: 0.75rem;
+}
+
+.assignments-table tbody tr:last-child td:last-child {
+  border-bottom-right-radius: 0.75rem;
+}
+
+.assignments-empty {
+  text-align: center !important;
+  color: var(--color-text-placeholder) !important;
+  font-weight: 600 !important;
+  padding: 2rem 1rem !important;
+}
+
+.assignments-col-action {
+  text-align: center;
+}
+
+.assignments-assign-button,
+.assignments-delete-button {
+  width: 2.15rem;
+  height: 2.15rem;
+  border: none;
+  border-radius: 0.5rem;
+  background: transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.18s ease, opacity 0.18s ease;
+}
+
+.assignments-assign-button:hover,
+.assignments-delete-button:hover {
+  transform: scale(1.12);
+}
+
+.assignments-assign-button:disabled,
+.assignments-delete-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.assignments-action-icon {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+}
+
+.assignments-delete-icon {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+}
+
+.assignments-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.85rem;
+  padding: 1rem 1rem 1.15rem;
+  margin-top: auto;
+}
+
+.assignments-pagination-button {
+  width: 2.15rem;
+  height: 2.15rem;
+  border: 1px solid var(--color-border-soft);
+  border-radius: 0.65rem;
+  background: var(--color-card-bg);
+  color: var(--color-primary);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.assignments-pagination-button:hover:not(:disabled) {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-light-ring);
+}
+
+.assignments-pagination-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.assignments-pagination-text {
+  color: var(--color-primary);
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+@media (max-width: 1100px) {
+  .assignments-panels {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .assignments-panel {
+    min-height: 620px;
+  }
+
+  .assignments-tablebody {
+    min-height: 470px;
+  }
+}
+
+@media (max-width: 640px) {
+  .assignments-toprow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .assignments-nurse-select {
+    width: 100%;
+  }
+
+  .assignments-panel-header h2 {
+    font-size: 1.05rem;
+  }
+
+  .assignments-tablebody {
+    padding: 0.85rem 0.75rem 0;
+    min-height: 360px;
+  }
+
+  .assignments-table thead th,
+  .assignments-table tbody td {
+    padding: 0.75rem 0.8rem;
+  }
+
+  .assignments-pagination {
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+}

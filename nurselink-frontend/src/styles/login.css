@@ -1,5 +1,5 @@
 body {
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-family-base);
   margin: 0;
 }
 
@@ -8,7 +8,7 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  background: #f3f4f6;
+  background: var(--color-page-bg);
   padding: 16px;
   box-sizing: border-box;
 }
@@ -16,28 +16,28 @@ body {
 .login-card {
   width: 100%;
   max-width: 360px;
-  background: #fff;
-  border: 1px solid #d8dbe2;
-  border-radius: 10px;
-  padding: 22px 22px 18px;
+  background: var(--color-card-bg);
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-card);
+  padding: 20px 22px 22px;
   box-sizing: border-box;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--shadow-card);
 }
 
 .logo {
   width: 160px;
   max-width: 100%;
   display: block;
-  margin: 0 auto 4px;
+  margin: 8px auto 10px;
 }
 
 .login-card h2 {
   text-align: center;
-  margin: 4px 0 10px;
-  color: #667085;   
+  margin: 10px 0 16px;
+  color: var(--color-text-main);
   font-size: 1.05rem;
   font-weight: 600;
-  line-height: 1.2;  
+  line-height: 1.2;
 }
 
 .form-group {
@@ -49,49 +49,49 @@ label {
   margin-bottom: 6px;
   font-weight: 600;
   font-size: 0.95rem;
-  color: #667085;
+  color: var(--color-text-main);
 }
 
 input {
   width: 100%;
   box-sizing: border-box;
   padding: 10px 12px;
-  border: 1px solid #667085;
-  border-radius: 6px;
-  color: #667085;
+  border: 1px solid var(--color-border-main);
+  border-radius: var(--radius-input);
+  color: var(--color-text-main);
   font-size: 0.95rem;
-  background: #fff;
+  background: var(--color-card-bg);
 }
 
 input::placeholder {
-  color: #98a2b3;
+  color: var(--color-text-placeholder);
 }
 
 input:focus {
   outline: none;
-  border-color: #2F5DA8;
-  box-shadow: 0 0 0 3px rgba(47, 93, 168, 0.12);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-light-ring);
 }
 
-button {
+.form button {
   width: 100%;
   padding: 11px;
   border: none;
-  border-radius: 6px;
-  background: #2F5DA8;
-  color: #fff;
+  border-radius: var(--radius-input);
+  background: var(--color-primary);
+  color: var(--color-white);
   font-weight: 600;
   font-size: 0.95rem;
   cursor: pointer;
 }
 
-button:disabled {
+.form button:disabled {
   opacity: 0.7;
   cursor: not-allowed;
 }
 
 .error {
-  color: #dc2626;
+  color: var(--color-error);
   margin-top: 12px;
   text-align: center;
   font-size: 0.9rem;
@@ -101,7 +101,7 @@ button:disabled {
   display: block;
   text-align: center;
   margin-top: 14px;
-  color: #3B82F6;
+  color: var(--color-link);
   text-decoration: none;
   font-size: 14px;
 }
@@ -117,13 +117,13 @@ button:disabled {
 
   .login-card {
     max-width: 100%;
-    padding: 18px 16px 16px;
-    border-radius: 8px;
+    padding: 18px 16px 18px;
+    border-radius: var(--radius-card-mobile);
   }
 
   .logo {
     width: 140px;
-    margin-bottom: 6px;
+    margin: 6px auto 10px;
   }
 
   .login-card h2 {
@@ -140,7 +140,7 @@ button:disabled {
     font-size: 0.9rem;
   }
 
-  button {
+  .form button {
     padding: 10px;
     font-size: 0.9rem;
   }

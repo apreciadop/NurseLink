@@ -1,4 +1,6 @@
-﻿namespace NurseLink.API.Domain.DTOs
+﻿using NurseLink.API.Domain.Enums;
+
+namespace NurseLink.API.Domain.DTOs
 {
     public class CreateAdminResponseDto
     {
@@ -10,7 +12,7 @@
         public string Surname { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
 
-        public int Role { get; set; }
+        public UserRole Role { get; set; }
         public string RoleName { get; set; } = string.Empty;
         public bool Active { get; set; }
 

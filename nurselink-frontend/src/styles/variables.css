@@ -1,0 +1,62 @@
+:root {
+  --font-family-base: 'Inter', sans-serif;
+
+  --color-page-bg: #f3f4f6;
+  --color-card-bg: #ffffff;
+
+  --color-border-soft: #d8dbe2;
+  --color-border-main: #667085;
+
+  --color-text-main: #667085;
+  --color-text-placeholder: #98a2b3;
+
+  --color-primary: #2f5da8;
+  --color-primary-light-ring: rgba(47, 93, 168, 0.12);
+
+  --color-white: #ffffff;
+  --color-error: #dc2626;
+  --color-link: #3b82f6;
+
+  --color-success: #2fa36b;
+
+  --color-table-row-alt: rgba(47, 93, 168, 0.035);
+  --color-table-row-hover: rgba(47, 93, 168, 0.09);
+
+  --color-action-hover-bg: rgba(47, 93, 168, 0.16);
+  --color-action-hover-border: rgba(47, 93, 168, 0.22);
+  --color-action-hover-shadow: rgba(47, 93, 168, 0.16);
+
+  --shadow-card: 0 4px 12px rgba(0, 0, 0, 0.08);
+
+  --radius-card: 10px;
+  --radius-input: 6px;
+  --radius-card-mobile: 8px;
+
+  --color-status-active-bg: #dcefe0;
+  --color-status-active-text: #15803d;
+
+  --color-status-inactive-bg: #e5e7eb;
+  --color-status-inactive-text: #475467;
+
+  --color-status-stable-bg: #16a34a;
+  --color-status-stable-text: #ffffff;
+
+  --color-status-warning-bg: #f59e0b;
+  --color-status-warning-text: #ffffff;
+
+  --color-status-alert-bg: #dc2626;
+  --color-status-alert-text: #ffffff;
+
+  --color-primary-hover: #2a5398;
+  --color-navigation-hover-bg: #eef3fb;
+  --color-navigation-active-bg: #e9eff8;
+
+  --color-soft-panel-bg: rgba(47, 93, 168, 0.03);
+  --color-soft-photo-bg: rgba(47, 93, 168, 0.04);
+
+  --color-modal-overlay-bg: rgba(16, 24, 40, 0.45);
+  --color-sidebar-overlay-bg: rgba(0, 0, 0, 0.28);
+  --color-logout-overlay-bg: rgba(0, 0, 0, 0.35);
+
+  --shadow-modal: 0 18px 48px rgba(16, 24, 40, 0.22);
+}

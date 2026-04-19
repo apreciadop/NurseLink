@@ -80,7 +80,7 @@ namespace NurseLink.API.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error creating administrator with email {Email}", request.Email);                
+                _logger.LogError(ex, "Error creating administrator with email {Email}", request.Email);
                 return StatusCode(500, "Error creating administrator.");
             }
         }
@@ -114,5 +114,111 @@ namespace NurseLink.API.Controllers
                 return StatusCode(500, "Error consulting administrators.");
             }
         }
-    }
+
+        [HttpGet("dashboardKpis")]
+        public async Task<ActionResult<GetAdminDashboardKpisResponseDto>> GetDashboardKpis()
+        {
+            try
+            {
+                var totalPatients = await _context.Patients.CountAsync();
+                var totalNurses = await _context.Nurses.CountAsync();
+                var totalAlerts = await _context.Reports.CountAsync(r => r.ReportStatus == ReportStatus.Alert);
+
+                var unassignedPatients = await _context.Patients
+                    .CountAsync(p => !_context.Assignments.Any(a => a.PatientId == p.PatientId));
+
+                var response = new GetAdminDashboardKpisResponseDto
+                {
+                    TotalPatients = totalPatients,
+                    TotalNurses = totalNurses,
+                    TotalAlerts = totalAlerts,
+                    UnassignedPatients = unassignedPatients
+                };
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving dashboard KPIs");
+                return StatusCode(500, "Error retrieving dashboard KPIs.");
+            }
+        }
+    
+
+        [HttpGet("patientsWithAlerts")]
+        public async Task<ActionResult<List<GetPatientWithAlertResponseDto>>> GetPatientsWithAlerts()
+        {
+            try
+            {
+                var latestReports = _context.Reports
+                    .Where(r => !_context.Reports.Any(r2 =>
+                        r2.PatientId == r.PatientId &&
+                        (
+                            r2.ReportDate > r.ReportDate ||
+                            (r2.ReportDate == r.ReportDate && r2.ReportId > r.ReportId)
+                        )));
+
+                var patientsWithAlerts = await latestReports
+                    .Where(r => r.ReportStatus == ReportStatus.Alert)
+                    .Select(r => new GetPatientWithAlertResponseDto
+                    {
+                        PatientId = r.PatientId,
+                        PatientName = r.Patient.User.UserName,
+                        PatientSurname = r.Patient.User.UserSurname,
+
+                        ReportDate = r.ReportDate,
+                        ReportStatus = r.ReportStatus.ToString(),
+                        CreatedAt = r.CreatedAt,
+                        NurseId = r.NurseId!.Value,
+                        NurseName = r.Nurse!.User.UserName,
+                        NurseSurname = r.Nurse.User.UserSurname,
+
+                        ReportPain = r.ReportPain,
+                        ReportFever = r.ReportFever,
+                        ReportBleeding = r.ReportBleeding,
+                        ReportSwelling = r.ReportSwelling
+                    })
+                    .OrderByDescending(r => r.ReportDate)
+                    .ThenBy(r => r.PatientSurname)
+                    .ThenBy(r => r.PatientName)
+                    .ToListAsync();
+
+                return Ok(patientsWithAlerts);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving patients with alerts");
+                return StatusCode(500, "Error retrieving patients with alerts.");
+            }
+        }
+
+        [HttpGet("unassignedPatients")]
+        public async Task<ActionResult<List<GetUnassignedPatientResponseDto>>> GetUnassignedPatients()
+        {
+            try
+            {
+                var unassignedPatients = await _context.Patients
+                    .Where(p => !_context.Assignments.Any(a => a.PatientId == p.PatientId))
+                    .Select(p => new GetUnassignedPatientResponseDto
+                    {
+                        PatientId = p.PatientId,
+                        PatientName = p.User.UserName,
+                        PatientSurname = p.User.UserSurname,
+                        SurgeryTypeName = p.Surgery.SurgeryType.SurgeryTypeName,
+                        SurgeryDate = p.Surgery.SurgeryDate
+                    })
+                    .OrderBy(p => p.PatientSurname)
+                    .ThenBy(p => p.PatientName)
+                    .ToListAsync();
+
+                return Ok(unassignedPatients);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving unassigned patients");
+                return StatusCode(500, "Error retrieving unassigned patients.");
+            }
+        }
+    } 
 }
+

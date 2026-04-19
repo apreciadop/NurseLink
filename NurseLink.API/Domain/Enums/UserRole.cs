@@ -6,4 +6,5 @@
         Nurse = 1,
         Patient = 2
     }
+   
 }
