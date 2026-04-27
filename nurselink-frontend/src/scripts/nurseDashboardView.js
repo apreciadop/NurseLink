@@ -1,8 +1,13 @@
 import { onMounted, watch } from 'vue'
+import ReportModal from '../views/ReportModal.vue'
 import { useNurseDashboard } from '../composables/useNurseDashboard'
 
 export default {
   name: 'NurseDashboardView',
+
+  components: {
+    ReportModal
+  },
 
   setup() {
     const nurseDashboard = useNurseDashboard()

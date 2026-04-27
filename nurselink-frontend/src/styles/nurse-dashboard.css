@@ -170,14 +170,18 @@
 .nurse-dashboard-table thead th:nth-child(8),
 .nurse-dashboard-table tbody td:nth-child(8),
 .nurse-dashboard-table thead th:nth-child(9),
-.nurse-dashboard-table tbody td:nth-child(9) {
+.nurse-dashboard-table tbody td:nth-child(9),
+.nurse-dashboard-table thead th:nth-child(10),
+.nurse-dashboard-table tbody td:nth-child(10) {
   text-align: center;
 }
 
 .nurse-dashboard-reports-table thead th:nth-child(2),
 .nurse-dashboard-reports-table tbody td:nth-child(2),
 .nurse-dashboard-reports-table thead th:nth-child(7),
-.nurse-dashboard-reports-table tbody td:nth-child(7) {
+.nurse-dashboard-reports-table tbody td:nth-child(7),
+.nurse-dashboard-reports-table thead th:nth-child(8),
+.nurse-dashboard-reports-table tbody td:nth-child(8) {
   text-align: center;
 }
 
@@ -257,6 +261,32 @@
 .nurse-dashboard-alertbadge-alert {
   background: var(--color-status-alert-bg);
   color: var(--color-status-alert-text);
+}
+
+.nurse-dashboard-profileicon-button,
+.nurse-dashboard-viewicon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.2rem;
+  height: 2.2rem;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.nurse-dashboard-profileicon,
+.nurse-dashboard-viewicon {
+  width: 1.3rem;
+  height: 1.3rem;
+  object-fit: contain;
+  transition: transform 0.18s ease;
+}
+
+.nurse-dashboard-profileicon-button:hover .nurse-dashboard-profileicon,
+.nurse-dashboard-viewicon-button:hover .nurse-dashboard-viewicon {
+  transform: scale(1.14);
 }
 
 .nurse-dashboard-empty {

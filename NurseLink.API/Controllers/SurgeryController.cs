@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using NurseLink.API.Database;
 using NurseLink.API.Domain.DTOs;
@@ -6,6 +7,7 @@ using NurseLink.API.Domain.Entities;
 
 namespace NurseLink.API.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class SurgeriesController : ControllerBase
@@ -84,10 +86,7 @@ namespace NurseLink.API.Controllers
                     request.PatientId,
                     request.SurgeryTypeId);
 
-                return StatusCode(
-                    500,
-                    "Error creating surgery for PatientId " + request.PatientId + " and SurgeryTypeId " + request.SurgeryTypeId + "."
-                );
+                return StatusCode(500, "Error creating surgery for PatientId " + request.PatientId + " and SurgeryTypeId " + request.SurgeryTypeId + ".");
             }
         }
 

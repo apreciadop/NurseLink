@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using NurseLink.API.Database;
 using NurseLink.API.Domain.DTOs;
@@ -7,6 +8,7 @@ using NurseLink.API.Domain.Enums;
 
 namespace NurseLink.API.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class AdminController : ControllerBase
@@ -143,7 +145,6 @@ namespace NurseLink.API.Controllers
                 return StatusCode(500, "Error retrieving dashboard KPIs.");
             }
         }
-    
 
         [HttpGet("patientsWithAlerts")]
         public async Task<ActionResult<List<GetPatientWithAlertResponseDto>>> GetPatientsWithAlerts()
@@ -165,14 +166,12 @@ namespace NurseLink.API.Controllers
                         PatientId = r.PatientId,
                         PatientName = r.Patient.User.UserName,
                         PatientSurname = r.Patient.User.UserSurname,
-
                         ReportDate = r.ReportDate,
                         ReportStatus = r.ReportStatus.ToString(),
                         CreatedAt = r.CreatedAt,
                         NurseId = r.NurseId!.Value,
                         NurseName = r.Nurse!.User.UserName,
                         NurseSurname = r.Nurse.User.UserSurname,
-
                         ReportPain = r.ReportPain,
                         ReportFever = r.ReportFever,
                         ReportBleeding = r.ReportBleeding,
@@ -219,6 +218,5 @@ namespace NurseLink.API.Controllers
                 return StatusCode(500, "Error retrieving unassigned patients.");
             }
         }
-    } 
+    }
 }
-

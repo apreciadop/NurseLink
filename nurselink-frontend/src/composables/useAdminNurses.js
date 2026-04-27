@@ -47,14 +47,12 @@ export function useAdminNurses() {
     return result.filter(nurse => {
       const fullName = `${nurse.name ?? ''} ${nurse.surname ?? ''}`.toLowerCase()
       const phone = (nurse.phoneNumber ?? nurse.phone ?? '').toLowerCase()
-      const status = nurse.active ? 'active' : 'inactive'
 
       return (
         fullName.includes(value) ||
-        phone.includes(value) ||
-        status.includes(value)
+        phone.includes(value)
       )
-    })
+    })   
   })
 
   const totalPages = computed(() => {

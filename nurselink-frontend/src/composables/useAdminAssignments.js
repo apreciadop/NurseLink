@@ -28,6 +28,9 @@ export function useAdminAssignments() {
   const unassignLoading = ref(false)
   const assignErrorMessage = ref('')
 
+  const isUnassignErrorModalOpen = ref(false)
+  const unassignErrorModalMessage = ref('')
+
   const assignedCurrentPage = ref(1)
   const availableCurrentPage = ref(1)
   const itemsPerPage = 8
@@ -76,6 +79,8 @@ export function useAdminAssignments() {
     loading.value = true
     errorMessage.value = ''
     assignErrorMessage.value = ''
+    isUnassignErrorModalOpen.value = false
+    unassignErrorModalMessage.value = ''
 
     try {
       await loadNurses()
@@ -97,6 +102,16 @@ export function useAdminAssignments() {
       loadAssignedPatients(),
       loadAvailablePatients()
     ])
+  }
+
+  const closeUnassignErrorModal = () => {
+    isUnassignErrorModalOpen.value = false
+    unassignErrorModalMessage.value = ''
+  }
+
+  const openUnassignErrorModal = (message) => {
+    unassignErrorModalMessage.value = message || 'Error unassigning patient.'
+    isUnassignErrorModalOpen.value = true
   }
 
   const assignPatient = async (patient) => {
@@ -133,9 +148,10 @@ export function useAdminAssignments() {
 
   const unassignPatient = async (patient) => {
     assignErrorMessage.value = ''
+    closeUnassignErrorModal()
 
     if (!patient?.patientId) {
-      assignErrorMessage.value = 'No patient selected.'
+      openUnassignErrorModal('No patient selected.')
       return
     }
 
@@ -149,7 +165,9 @@ export function useAdminAssignments() {
 
       await refreshTables()
     } catch (error) {
-      assignErrorMessage.value = error.message || 'Error unassigning patient.'
+      const message = error.message || 'Error unassigning patient.'
+      assignErrorMessage.value = message
+      openUnassignErrorModal(message)
     } finally {
       unassignLoading.value = false
     }
@@ -273,6 +291,8 @@ export function useAdminAssignments() {
     assignLoading,
     unassignLoading,
     assignErrorMessage,
+    isUnassignErrorModalOpen,
+    unassignErrorModalMessage,
     loadNurses,
     loadAssignedPatients,
     loadAvailablePatients,
@@ -280,6 +300,7 @@ export function useAdminAssignments() {
     refreshTables,
     assignPatient,
     unassignPatient,
+    closeUnassignErrorModal,
     resetAssignedPage,
     resetAvailablePage,
     goToPreviousAssignedPage,

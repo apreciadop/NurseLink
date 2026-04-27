@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using NurseLink.API.Database;
 using NurseLink.API.Domain.DTOs;
@@ -8,6 +9,7 @@ using System.Text.RegularExpressions;
 
 namespace NurseLink.API.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class PatientsController : ControllerBase
@@ -25,25 +27,14 @@ namespace NurseLink.API.Controllers
         public async Task<ActionResult<CreatePatientResponseDto>> CreatePatient([FromBody] CreatePatientRequestDto request)
         {
             if (request == null)
-            {
                 return BadRequest("Request body required.");
-            }
 
             if (!ModelState.IsValid)
-            {
                 return BadRequest(ModelState);
-            }
 
-            if (string.IsNullOrWhiteSpace(request.Name) ||
-                string.IsNullOrWhiteSpace(request.Surname) ||
-                string.IsNullOrWhiteSpace(request.Email) ||
-                string.IsNullOrWhiteSpace(request.Password) ||
-                !request.Birthdate.HasValue ||
-                !request.SurgeryTypeId.HasValue ||
-                !request.SurgeryDate.HasValue)
-            {
+            if (string.IsNullOrWhiteSpace(request.Name) || string.IsNullOrWhiteSpace(request.Surname) || string.IsNullOrWhiteSpace(request.Email) ||
+                string.IsNullOrWhiteSpace(request.Password) || !request.Birthdate.HasValue || !request.SurgeryTypeId.HasValue || !request.SurgeryDate.HasValue)
                 return BadRequest("Name, surname, birthdate, email, password, surgery type and surgery date are required.");
-            }
 
             var normalizedEmail = request.Email.Trim().ToLower();
 
@@ -51,17 +42,13 @@ namespace NurseLink.API.Controllers
                 .AnyAsync(u => u.UserEmail.ToLower() == normalizedEmail);
 
             if (emailExists)
-            {
                 return BadRequest("Email already exists.");
-            }
 
             var surgeryTypeExists = await _context.SurgeryTypes
                 .AnyAsync(st => st.SurgeryTypeId == request.SurgeryTypeId.Value);
 
             if (!surgeryTypeExists)
-            {
                 return BadRequest("Selected surgery type does not exist.");
-            }
 
             try
             {
@@ -130,40 +117,26 @@ namespace NurseLink.API.Controllers
         public async Task<ActionResult<UpdatePatientResponseDto>> UpdatePatient(int patientId, [FromBody] UpdatePatientRequestDto request)
         {
             if (request == null)
-            {
                 return BadRequest("Request body required.");
-            }
 
             if (!ModelState.IsValid)
-            {
                 return BadRequest(ModelState);
-            }
 
-            if (string.IsNullOrWhiteSpace(request.Name) ||
-                string.IsNullOrWhiteSpace(request.Surname) ||
-                string.IsNullOrWhiteSpace(request.Email) ||
-                !request.Birthdate.HasValue ||
-                !request.SurgeryTypeId.HasValue ||
-                !request.SurgeryDate.HasValue)
-            {
+            if (string.IsNullOrWhiteSpace(request.Name) || string.IsNullOrWhiteSpace(request.Surname) || string.IsNullOrWhiteSpace(request.Email) ||
+                !request.Birthdate.HasValue || !request.SurgeryTypeId.HasValue || !request.SurgeryDate.HasValue)
                 return BadRequest("Name, surname, birthdate, email, surgery type and surgery date are required.");
-            }
 
             if (!string.IsNullOrWhiteSpace(request.Password))
             {
                 if (request.Password.Length < 6 || request.Password.Length > 255)
-                {
                     return BadRequest("Password must be between 6 and 255 characters.");
-                }
 
                 var passwordRegex = new Regex(
                     @"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).+$"
                 );
 
                 if (!passwordRegex.IsMatch(request.Password))
-                {
                     return BadRequest("Password must contain at least one uppercase letter, one lowercase letter, one number and one special character.");
-                }
             }
 
             try
@@ -175,9 +148,7 @@ namespace NurseLink.API.Controllers
                     .FirstOrDefaultAsync(p => p.PatientId == patientId);
 
                 if (patient == null)
-                {
                     return NotFound("Patient not found.");
-                }
 
                 var normalizedEmail = request.Email.Trim().ToLower();
 
@@ -185,22 +156,16 @@ namespace NurseLink.API.Controllers
                     .AnyAsync(u => u.UserId != patient.UserId && u.UserEmail.ToLower() == normalizedEmail);
 
                 if (emailExists)
-                {
                     return BadRequest("Email already exists.");
-                }
 
                 var surgeryTypeExists = await _context.SurgeryTypes
                     .AnyAsync(st => st.SurgeryTypeId == request.SurgeryTypeId.Value);
 
                 if (!surgeryTypeExists)
-                {
                     return BadRequest("Selected surgery type does not exist.");
-                }
 
                 if (!request.Active && patient.Assignment != null)
-                {
                     return BadRequest("This patient cannot be deactivated because there is still a nurse assigned.");
-                }
 
                 patient.User.UserName = request.Name.Trim();
                 patient.User.UserSurname = request.Surname.Trim();
@@ -211,9 +176,7 @@ namespace NurseLink.API.Controllers
                 patient.User.UserActive = request.Active;
 
                 if (!string.IsNullOrWhiteSpace(request.Password))
-                {
                     patient.User.UserPassword = BCrypt.Net.BCrypt.HashPassword(request.Password);
-                }
 
                 patient.PatientObservations = string.IsNullOrWhiteSpace(request.PatientObservations)
                     ? null
@@ -310,9 +273,7 @@ namespace NurseLink.API.Controllers
                     .FirstOrDefaultAsync(p => p.PatientId == id);
 
                 if (patient == null)
-                {
                     return NotFound("Patient not found.");
-                }
 
                 var latestReport = patient.Reports
                     .OrderByDescending(r => r.ReportDate)
@@ -334,11 +295,9 @@ namespace NurseLink.API.Controllers
                     Photo = patient.User.UserPhoto,
                     Active = patient.User.UserActive,
                     PatientObservations = patient.PatientObservations,
-
                     SurgeryTypeId = patient.Surgery.SurgeryTypeId,
                     SurgeryName = patient.Surgery.SurgeryType.SurgeryTypeName,
                     SurgeryDate = patient.Surgery.SurgeryDate,
-
                     AssignedNurseId = patient.Assignment != null
                         ? patient.Assignment.NurseId
                         : null,
@@ -426,14 +385,10 @@ namespace NurseLink.API.Controllers
         private static ReportStatus GetPatientStatus(int alertCount)
         {
             if (alertCount == 0)
-            {
                 return ReportStatus.Stable;
-            }
 
             if (alertCount >= 1 && alertCount <= 2)
-            {
                 return ReportStatus.Warning;
-            }
 
             return ReportStatus.Alert;
         }
@@ -441,17 +396,13 @@ namespace NurseLink.API.Controllers
         private static int? CalculateAge(DateTime? birthdate)
         {
             if (!birthdate.HasValue)
-            {
                 return null;
-            }
 
             var today = DateTime.Today;
             var age = today.Year - birthdate.Value.Year;
 
             if (birthdate.Value.Date > today.AddYears(-age))
-            {
                 age--;
-            }
 
             return age;
         }

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using NurseLink.API.Database;
 using NurseLink.API.Domain.DTOs;
@@ -8,6 +9,7 @@ using System.Text.RegularExpressions;
 
 namespace NurseLink.API.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class NursesController : ControllerBase
@@ -25,23 +27,14 @@ namespace NurseLink.API.Controllers
         public async Task<ActionResult<CreateNurseResponseDto>> CreateNurse([FromBody] CreateNurseRequestDto request)
         {
             if (request == null)
-            {
                 return BadRequest("Request body required.");
-            }
 
             if (!ModelState.IsValid)
-            {
                 return BadRequest(ModelState);
-            }
 
-            if (string.IsNullOrWhiteSpace(request.Name) ||
-                string.IsNullOrWhiteSpace(request.Surname) ||
-                string.IsNullOrWhiteSpace(request.Email) ||
-                !request.Birthdate.HasValue ||
-                string.IsNullOrWhiteSpace(request.Password))
-            {
+            if (string.IsNullOrWhiteSpace(request.Name) || string.IsNullOrWhiteSpace(request.Surname) ||
+                string.IsNullOrWhiteSpace(request.Email) || !request.Birthdate.HasValue || string.IsNullOrWhiteSpace(request.Password))
                 return BadRequest("Name, surname, email, birthday and password are required.");
-            }
 
             var normalizedEmail = request.Email.Trim().ToLower();
 
@@ -49,9 +42,7 @@ namespace NurseLink.API.Controllers
                 .AnyAsync(u => u.UserEmail.ToLower() == normalizedEmail);
 
             if (emailExists)
-            {
                 return BadRequest("Email already exists.");
-            }
 
             try
             {
@@ -178,21 +169,13 @@ namespace NurseLink.API.Controllers
         public async Task<ActionResult<UpdateNurseResponseDto>> UpdateNurse(int id, [FromBody] UpdateNurseRequestDto request)
         {
             if (request == null)
-            {
                 return BadRequest("Request body required.");
-            }
 
             if (!ModelState.IsValid)
-            {
                 return BadRequest(ModelState);
-            }
 
-            if (string.IsNullOrWhiteSpace(request.Name) ||
-                string.IsNullOrWhiteSpace(request.Surname) ||
-                string.IsNullOrWhiteSpace(request.Email))
-            {
+            if (string.IsNullOrWhiteSpace(request.Name) || string.IsNullOrWhiteSpace(request.Surname) || string.IsNullOrWhiteSpace(request.Email))
                 return BadRequest("Name, surname and email are required.");
-            }
 
             try
             {
@@ -201,9 +184,7 @@ namespace NurseLink.API.Controllers
                     .FirstOrDefaultAsync(n => n.NurseId == id);
 
                 if (nurse == null)
-                {
                     return NotFound("Nurse not found.");
-                }
 
                 var normalizedEmail = request.Email.Trim().ToLower();
 
@@ -211,36 +192,28 @@ namespace NurseLink.API.Controllers
                     .AnyAsync(u => u.UserEmail.ToLower() == normalizedEmail && u.UserId != nurse.User.UserId);
 
                 if (emailExists)
-                {
                     return BadRequest("Email already exists.");
-                }
 
                 if (!request.Active)
                 {
                     var hasAssignedPatients = await _context.Assignments
                         .AnyAsync(a => a.NurseId == id);
 
-                    if (hasAssignedPatients)
-                    {
+                    if (hasAssignedPatients)                    
                         return BadRequest("This nurse cannot be deactivated because she still has assigned patients.");
-                    }
                 }
 
                 if (!string.IsNullOrWhiteSpace(request.Password))
                 {
                     if (request.Password.Length < 6 || request.Password.Length > 255)
-                    {
                         return BadRequest("Password must be between 6 and 255 characters.");
-                    }
 
                     var passwordRegex = new Regex(
                         @"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).+$"
                     );
 
                     if (!passwordRegex.IsMatch(request.Password))
-                    {
                         return BadRequest("Password must contain at least one uppercase letter, one lowercase letter, one number and one special character.");
-                    }
 
                     nurse.User.UserPassword = BCrypt.Net.BCrypt.HashPassword(request.Password);
                 }
@@ -299,9 +272,7 @@ namespace NurseLink.API.Controllers
                     .FirstOrDefaultAsync();
 
                 if (nurse == null)
-                {
                     return NotFound("Nurse not found.");
-                }
 
                 return Ok(nurse);
             }
@@ -321,9 +292,7 @@ namespace NurseLink.API.Controllers
                     .AnyAsync(n => n.NurseId == id);
 
                 if (!nurseExists)
-                {
                     return NotFound("Nurse not found.");
-                }
 
                 var assignments = await _context.Assignments
                     .Where(a => a.NurseId == id)
@@ -353,16 +322,12 @@ namespace NurseLink.API.Controllers
                             Name = a.Patient.User.UserName,
                             Surname = a.Patient.User.UserSurname,
                             Photo = a.Patient.User.UserPhoto,
-
                             Birthdate = a.Patient.User.UserBirthdate,
                             Age = CalculateAge(a.Patient.User.UserBirthdate),
-
                             Surgery = a.Patient.Surgery.SurgeryType.SurgeryTypeName,
                             SurgeryDate = a.Patient.Surgery.SurgeryDate,
-
                             Phone = a.Patient.User.UserPhone,
                             Active = a.Patient.User.UserActive,
-
                             AlertCount = alertCount,
                             Status = status
                         };
@@ -383,14 +348,10 @@ namespace NurseLink.API.Controllers
         private static ReportStatus GetPatientStatus(int alertCount)
         {
             if (alertCount == 0)
-            {
                 return ReportStatus.Stable;
-            }
 
             if (alertCount >= 1 && alertCount <= 2)
-            {
                 return ReportStatus.Warning;
-            }
 
             return ReportStatus.Alert;
         }
@@ -398,17 +359,13 @@ namespace NurseLink.API.Controllers
         private static int? CalculateAge(DateTime? birthdate)
         {
             if (!birthdate.HasValue)
-            {
                 return null;
-            }
 
             var today = DateTime.Today;
             var age = today.Year - birthdate.Value.Year;
 
             if (birthdate.Value.Date > today.AddYears(-age))
-            {
                 age--;
-            }
 
             return age;
         }

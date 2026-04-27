@@ -18,20 +18,17 @@ namespace NurseLink.API.Domain.Entities
         [Column("message_date")]
         public DateTime MessageDate { get; set; }
 
-        // 0 = Nurse
-        // 1 = Patient
         [Required]
         [Column("message_sender")]
-        public bool MessageSender { get; set; }
+        public int MessageSender { get; set; } // 0 = Nurse, 1 = Patient
 
         [Required]
-        [MaxLength(2000)]
         [Column("message_text")]
         public string MessageText { get; set; } = string.Empty;
 
         [Required]
         [Column("message_read")]
-        public bool MessageRead { get; set; } = false;
+        public bool MessageRead { get; set; }
 
         [Required]
         [Column("created_at")]

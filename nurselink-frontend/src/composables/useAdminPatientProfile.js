@@ -1,11 +1,16 @@
-import { reactive, ref } from 'vue'
+import { computed, reactive, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import {
   getPatientById,
   getSurgeryTypes,
+  getReportsByPatient,
+  getReportById,
   updatePatient
 } from '../services/adminService'
-import { formatDateForInput } from '../utils/dateUtils'
+import {
+  formatDateForInput,
+  formatDateTime
+} from '../utils/dateUtils'
 
 export function useAdminPatientProfile() {
   const route = useRoute()
@@ -17,6 +22,17 @@ export function useAdminPatientProfile() {
   const saveMessage = ref('')
   const saveErrorMessage = ref('')
   const surgeryTypes = ref([])
+
+  const reportsLoading = ref(false)
+  const reportsErrorMessage = ref('')
+  const reports = ref([])
+
+  const isReportModalOpen = ref(false)
+  const reportDetailLoading = ref(false)
+  const reportDetailErrorMessage = ref('')
+  const selectedReport = ref(null)
+
+  const painLevels = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
   const patientForm = reactive({
     patientId: 0,
@@ -33,11 +49,69 @@ export function useAdminPatientProfile() {
     surgeryTypeId: 0,
     surgeryDate: '',
     assignedNurseId: null,
-    assignedNurseName: ''
+    assignedNurseName: '',
+    alertCount: 0,
+    statusLabel: 'Stable'
   })
+
+  const calculateStatusFromAlerts = (alertCount) => {
+    if (Number(alertCount) === 0) {
+      return 'Stable'
+    }
+
+    if (Number(alertCount) <= 2) {
+      return 'Warning'
+    }
+
+    return 'Alert'
+  }
+
+  const normalizeStatus = (status, alertCount) => {
+    if (status === 0 || status === 'Stable') {
+      return 'Stable'
+    }
+
+    if (status === 1 || status === 'Warning') {
+      return 'Warning'
+    }
+
+    if (status === 2 || status === 'Alert') {
+      return 'Alert'
+    }
+
+    const statusText = String(status ?? '').toLowerCase()
+
+    if (statusText === 'alert') {
+      return 'Alert'
+    }
+
+    if (statusText === 'warning') {
+      return 'Warning'
+    }
+
+    return calculateStatusFromAlerts(alertCount)
+  }
+
+  const mapReport = (report) => {
+    const alertCount = report.alertCount ?? report.alerts ?? 0
+
+    return {
+      reportId: report.reportId ?? report.id,
+      reportDate: formatDateTime(report.createdAt ?? report.reportDate),
+      statusLabel: normalizeStatus(report.status ?? report.statusLabel, alertCount),
+      painLevel: report.painLevel,
+      hasFever: report.hasFever ?? report.fever ?? false,
+      hasBleeding: report.hasBleeding ?? report.bleeding ?? false,
+      hasSwelling: report.hasSwelling ?? report.swelling ?? false,
+      observations: report.observations ?? '',
+      nurseObservations: report.nurseObservations ?? '',
+      alertCount
+    }
+  }
 
   const loadPatient = async () => {
     const data = await getPatientById(patientId.value)
+    const alertCount = data.alertCount ?? data.alerts ?? 0
 
     patientForm.patientId = data.patientId ?? 0
     patientForm.userId = data.userId ?? 0
@@ -54,11 +128,29 @@ export function useAdminPatientProfile() {
     patientForm.surgeryDate = formatDateForInput(data.surgeryDate)
     patientForm.assignedNurseId = data.assignedNurseId ?? null
     patientForm.assignedNurseName = data.assignedNurseName ?? ''
+    patientForm.alertCount = alertCount
+    patientForm.statusLabel = normalizeStatus(data.status ?? data.statusLabel, alertCount)
   }
 
   const loadSurgeryTypes = async () => {
     const data = await getSurgeryTypes()
     surgeryTypes.value = data ?? []
+  }
+
+  const loadReports = async () => {
+    reportsLoading.value = true
+    reportsErrorMessage.value = ''
+    reports.value = []
+
+    try {
+      const data = await getReportsByPatient(patientId.value)
+      reports.value = (data ?? []).map(mapReport)
+    } catch (error) {
+      reportsErrorMessage.value = error.message || 'Error loading patient reports.'
+      console.error('Admin patient reports error:', error)
+    } finally {
+      reportsLoading.value = false
+    }
   }
 
   const loadProfileData = async () => {
@@ -68,7 +160,8 @@ export function useAdminPatientProfile() {
     try {
       await Promise.all([
         loadPatient(),
-        loadSurgeryTypes()
+        loadSurgeryTypes(),
+        loadReports()
       ])
     } catch (error) {
       errorMessage.value = error.message || 'Error loading patient profile.'
@@ -160,6 +253,7 @@ export function useAdminPatientProfile() {
 
       patientForm.password = ''
       saveMessage.value = 'Patient updated successfully.'
+      await loadPatient()
     } catch (error) {
       saveErrorMessage.value = error.message || 'Error updating patient.'
       console.error('Update patient error:', error)
@@ -167,6 +261,35 @@ export function useAdminPatientProfile() {
       saveLoading.value = false
     }
   }
+
+  const openViewReportModal = async (report) => {
+    if (!report?.reportId) {
+      return
+    }
+
+    isReportModalOpen.value = true
+    reportDetailLoading.value = true
+    reportDetailErrorMessage.value = ''
+    selectedReport.value = null
+
+    try {
+      const data = await getReportById(report.reportId)
+      selectedReport.value = mapReport(data)
+    } catch (error) {
+      reportDetailErrorMessage.value = error.message || 'Error loading report details.'
+    } finally {
+      reportDetailLoading.value = false
+    }
+  }
+
+  const closeViewReportModal = () => {
+    isReportModalOpen.value = false
+    reportDetailLoading.value = false
+    reportDetailErrorMessage.value = ''
+    selectedReport.value = null
+  }
+
+  const hasReports = computed(() => reports.value.length > 0)
 
   return {
     patientId,
@@ -177,10 +300,22 @@ export function useAdminPatientProfile() {
     saveErrorMessage,
     patientForm,
     surgeryTypes,
+    reports,
+    reportsLoading,
+    reportsErrorMessage,
+    hasReports,
+    isReportModalOpen,
+    reportDetailLoading,
+    reportDetailErrorMessage,
+    selectedReport,
+    painLevels,
     loadPatient,
     loadSurgeryTypes,
+    loadReports,
     loadProfileData,
     handlePhotoChange,
-    submitUpdatePatient
+    submitUpdatePatient,
+    openViewReportModal,
+    closeViewReportModal
   }
 }

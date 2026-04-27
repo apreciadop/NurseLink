@@ -1,0 +1,281 @@
+.report-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 3000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: rgba(15, 23, 42, 0.42);
+}
+
+.report-modal-card {
+  width: min(920px, 100%);
+  max-height: calc(100vh - 3rem);
+  overflow-y: auto;
+  background: var(--color-card-bg);
+  border: 1px solid var(--color-border-soft);
+  border-radius: 1.25rem;
+  box-shadow: 0 20px 48px rgba(16, 24, 40, 0.18);
+}
+
+.report-modal-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.4rem 1.5rem 1rem;
+  border-bottom: 1px solid var(--color-border-soft);
+}
+
+.report-modal-headtext {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.report-modal-title {
+  margin: 0;
+  color: var(--color-primary);
+  font-size: 1.55rem;
+  font-weight: 800;
+}
+
+.report-modal-subtitle {
+  margin: 0;
+  color: var(--color-text-main);
+  font-size: 0.98rem;
+}
+
+.report-modal-close {
+  width: 2.2rem;
+  height: 2.2rem;
+  border: 1px solid var(--color-border-soft);
+  border-radius: 0.75rem;
+  background: var(--color-card-bg);
+  color: var(--color-text-main);
+  font: inherit;
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.report-modal-body {
+  padding: 1.35rem 1.5rem;
+}
+
+.report-modal-message {
+  margin: 0 0 1rem;
+  color: var(--color-text-main);
+}
+
+.report-modal-message-error {
+  color: var(--color-error);
+}
+
+.report-modal-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.35rem;
+}
+
+.report-modal-section-title {
+  margin: 0;
+  color: var(--color-primary);
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.report-modal-section-title span {
+  color: var(--color-text-placeholder);
+  font-weight: 600;
+}
+
+.report-modal-painscale {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  width: 100%;
+}
+
+.report-modal-painlevels {
+  display: grid;
+  grid-template-columns: repeat(11, minmax(0, 1fr));
+  gap: 0.6rem;
+  width: 100%;
+}
+
+.report-modal-painbutton {
+  width: 100%;
+  min-width: 0;
+  height: 2.6rem;
+  border: 1px solid var(--color-border-soft);
+  border-radius: 0.7rem;
+  background: var(--color-white);
+  color: var(--color-text-main);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.report-modal-painbutton-active {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-white);
+}
+
+.report-modal-painbutton-readonly {
+  cursor: default;
+}
+
+.report-modal-painlegend {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  gap: 1rem;
+  color: var(--color-text-placeholder);
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.report-modal-symptoms {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.35rem;
+}
+
+.report-modal-symptomcard {
+  border: 1px solid var(--color-border-soft);
+  border-radius: 1rem;
+  background: rgba(47, 93, 168, 0.03);
+  padding: 1rem;
+}
+
+.report-modal-symptomtitle {
+  margin: 0 0 0.35rem;
+  color: var(--color-primary);
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.report-modal-symptomtext {
+  margin: 0 0 0.9rem;
+  color: var(--color-text-main);
+}
+
+.report-modal-toggle {
+  display: flex;
+  gap: 0.7rem;
+}
+
+.report-modal-togglebutton {
+  flex: 1;
+  min-height: 2.45rem;
+  border: 1px solid var(--color-border-soft);
+  border-radius: 0.7rem;
+  background: var(--color-white);
+  color: var(--color-text-main);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.report-modal-togglebutton-yes {
+  background: var(--color-status-alert-bg);
+  border-color: var(--color-status-alert-bg);
+  color: var(--color-status-alert-text);
+}
+
+.report-modal-togglebutton-no {
+  background: var(--color-status-stable-bg);
+  border-color: var(--color-status-stable-bg);
+  color: var(--color-status-stable-text);
+}
+
+.report-modal-togglebutton-readonly {
+  cursor: default;
+}
+
+.report-modal-textarea {
+  width: 100%;
+  min-height: 130px;
+  resize: vertical;
+  padding: 0.95rem 1rem;
+  border: 1px solid var(--color-border-soft);
+  border-radius: 0.9rem;
+  background: var(--color-white);
+  color: var(--color-text-main);
+  font: inherit;
+  box-sizing: border-box;
+}
+
+.report-modal-textarea[readonly] {
+  background: rgba(47, 93, 168, 0.03);
+}
+
+.report-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.85rem;
+  padding: 0 1.5rem 1.4rem;
+}
+
+.report-modal-cancelbutton,
+.report-modal-submitbutton {
+  min-height: 2.7rem;
+  padding: 0 1.2rem;
+  border-radius: 0.8rem;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.report-modal-cancelbutton {
+  border: 1px solid var(--color-border-soft);
+  background: var(--color-card-bg);
+  color: var(--color-text-main);
+}
+
+.report-modal-submitbutton {
+  border: 1px solid var(--color-primary);
+  background: var(--color-primary);
+  color: var(--color-white);
+}
+
+.report-modal-submitbutton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (max-width: 820px) {
+  .report-modal-symptoms {
+    grid-template-columns: 1fr;
+  }
+
+  .report-modal-painlevels {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .report-modal {
+    padding: 1rem;
+  }
+
+  .report-modal-head,
+  .report-modal-body,
+  .report-modal-footer {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .report-modal-footer {
+    flex-direction: column;
+  }
+
+  .report-modal-painlevels {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}

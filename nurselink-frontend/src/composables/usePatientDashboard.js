@@ -2,6 +2,7 @@ import { computed, reactive, ref } from 'vue'
 import {
   createReport,
   getPatientDashboardById,
+  getReportById,
   getReportsByPatient,
   getSurgeryTypes
 } from '../services/patientService'
@@ -30,6 +31,12 @@ export function usePatientDashboard() {
   const isCreateReportModalOpen = ref(false)
   const createReportLoading = ref(false)
   const createReportErrorMessage = ref('')
+
+  const isViewReportModalOpen = ref(false)
+  const reportDetailLoading = ref(false)
+  const reportDetailErrorMessage = ref('')
+  const selectedReport = ref(null)
+
   const painLevels = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
   const reportForm = reactive({
@@ -146,15 +153,20 @@ export function usePatientDashboard() {
 
   const mapReport = (report) => {
     const alertCount = report.alertCount ?? report.alerts ?? 0
+    const nurseObservations = report.nurseObservations ?? ''
+
     return {
       reportId: report.reportId ?? report.id,
-      reportDate: formatDateTime(report.createdAt),
-      reportDateValue: formatDateForInput(report.createdAt),
+      reportDate: formatDateTime(report.createdAt ?? report.reportDate),
+      reportDateValue: formatDateForInput(report.createdAt ?? report.reportDate),
       statusLabel: normalizeStatus(report.status ?? report.statusLabel, alertCount),
       painLevel: report.painLevel,
       hasFever: report.hasFever ?? report.fever ?? false,
       hasBleeding: report.hasBleeding ?? report.bleeding ?? false,
       hasSwelling: report.hasSwelling ?? report.swelling ?? false,
+      observations: report.observations ?? '',
+      nurseObservations,
+      hasNurseObservations: Boolean(nurseObservations && nurseObservations.trim()),
       alertCount
     }
   }
@@ -183,6 +195,15 @@ export function usePatientDashboard() {
 
     return filteredReports.value.slice(start, end)
   })
+
+  const createModalReport = computed(() => ({
+    painLevel: reportForm.painLevel,
+    hasFever: reportForm.hasFever,
+    hasBleeding: reportForm.hasBleeding,
+    hasSwelling: reportForm.hasSwelling,
+    observations: reportForm.observations,
+    nurseObservations: ''
+  }))
 
   const loadSurgeryTypes = async () => {
     const data = await getSurgeryTypes()
@@ -279,6 +300,33 @@ export function usePatientDashboard() {
     }
   }
 
+  const openViewReportModal = async (report) => {
+    if (!report?.reportId) {
+      return
+    }
+
+    isViewReportModalOpen.value = true
+    reportDetailLoading.value = true
+    reportDetailErrorMessage.value = ''
+    selectedReport.value = null
+
+    try {
+      const data = await getReportById(report.reportId)
+      selectedReport.value = mapReport(data)
+    } catch (error) {
+      reportDetailErrorMessage.value = error.message || 'Error loading report details.'
+    } finally {
+      reportDetailLoading.value = false
+    }
+  }
+
+  const closeViewReportModal = () => {
+    isViewReportModalOpen.value = false
+    reportDetailLoading.value = false
+    reportDetailErrorMessage.value = ''
+    selectedReport.value = null
+  }
+
   const resetReportsPage = () => {
     reportsCurrentPage.value = 1
   }
@@ -311,13 +359,20 @@ export function usePatientDashboard() {
     isCreateReportModalOpen,
     createReportLoading,
     createReportErrorMessage,
+    isViewReportModalOpen,
+    reportDetailLoading,
+    reportDetailErrorMessage,
+    selectedReport,
     painLevels,
     reportForm,
+    createModalReport,
     loadPatientDashboard,
     loadReports,
     openCreateReportModal,
     closeCreateReportModal,
     submitCreateReport,
+    openViewReportModal,
+    closeViewReportModal,
     resetReportsPage,
     goToPreviousReportsPage,
     goToNextReportsPage

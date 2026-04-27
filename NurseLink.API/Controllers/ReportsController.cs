@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using NurseLink.API.Database;
 using NurseLink.API.Domain.DTOs;
@@ -7,6 +8,7 @@ using NurseLink.API.Domain.Enums;
 
 namespace NurseLink.API.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class ReportsController : ControllerBase
@@ -29,9 +31,7 @@ namespace NurseLink.API.Controllers
                     .AnyAsync(p => p.PatientId == patientId);
 
                 if (!patientExists)
-                {
                     return NotFound("Patient not found.");
-                }
 
                 var reports = await _context.Reports
                     .Where(r => r.PatientId == patientId)
@@ -64,18 +64,51 @@ namespace NurseLink.API.Controllers
             }
         }
 
+        [HttpGet("{id}")]
+        public async Task<ActionResult<GetReportResponseDto>> GetReportById(int id)
+        {
+            try
+            {
+                var report = await _context.Reports
+                    .Where(r => r.ReportId == id)
+                    .Select(r => new GetReportResponseDto
+                    {
+                        ReportId = r.ReportId,
+                        PatientId = r.PatientId,
+                        ReportDate = r.ReportDate,
+                        CreatedAt = r.CreatedAt,
+                        PainLevel = r.ReportPain,
+                        HasFever = r.ReportFever,
+                        HasBleeding = r.ReportBleeding,
+                        HasSwelling = r.ReportSwelling,
+                        Observations = r.ReportObservations,
+                        AlertCount = r.ReportAlerts,
+                        Status = r.ReportStatus,
+                        NurseId = r.NurseId,
+                        NurseObservations = r.ReportNurseObservations
+                    })
+                    .FirstOrDefaultAsync();
+
+                if (report == null)
+                    return NotFound("Report not found.");
+
+                return Ok(report);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading report with id {ReportId}", id);
+                return StatusCode(500, "Error loading report with id " + id);
+            }
+        }
+
         [HttpPost("create")]
         public async Task<ActionResult<CreateReportResponseDto>> CreateReport([FromBody] CreateReportRequestDto request)
         {
             if (request == null)
-            {
                 return BadRequest("Request body is required.");
-            }
 
             if (!ModelState.IsValid)
-            {
                 return BadRequest(ModelState);
-            }
 
             try
             {
@@ -84,9 +117,7 @@ namespace NurseLink.API.Controllers
                     .FirstOrDefaultAsync(p => p.PatientId == request.PatientId);
 
                 if (patient == null)
-                {
                     return NotFound("Patient not found.");
-                }
 
                 var alertCount = CalculateAlertCount(
                     request.PainLevel,
@@ -131,7 +162,8 @@ namespace NurseLink.API.Controllers
                     Observations = report.ReportObservations,
                     AlertCount = report.ReportAlerts,
                     Status = report.ReportStatus,
-                    NurseId = report.NurseId
+                    NurseId = report.NurseId,
+                    NurseObservations = report.ReportNurseObservations
                 });
             }
             catch (Exception ex)
@@ -140,6 +172,55 @@ namespace NurseLink.API.Controllers
 
                 _logger.LogError(ex, "Error creating report for patient {PatientId}", patientId);
                 return StatusCode(500, "Error creating report for patient with id " + patientId);
+            }
+        }
+
+        [HttpPut("{id}/nurseObservations")]
+        public async Task<ActionResult<GetReportResponseDto>> UpdateNurseObservations(
+            int id,
+            [FromBody] UpdateReportNurseObservationsRequestDto request)
+        {
+            if (request == null)
+                return BadRequest("Request body is required.");
+
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            try
+            {
+                var report = await _context.Reports
+                    .FirstOrDefaultAsync(r => r.ReportId == id);
+
+                if (report == null)
+                    return NotFound("Report not found.");
+
+                report.ReportNurseObservations = string.IsNullOrWhiteSpace(request.NurseObservations)
+                    ? null
+                    : request.NurseObservations.Trim();
+
+                await _context.SaveChangesAsync();
+
+                return Ok(new GetReportResponseDto
+                {
+                    ReportId = report.ReportId,
+                    PatientId = report.PatientId,
+                    ReportDate = report.ReportDate,
+                    CreatedAt = report.CreatedAt,
+                    PainLevel = report.ReportPain,
+                    HasFever = report.ReportFever,
+                    HasBleeding = report.ReportBleeding,
+                    HasSwelling = report.ReportSwelling,
+                    Observations = report.ReportObservations,
+                    AlertCount = report.ReportAlerts,
+                    Status = report.ReportStatus,
+                    NurseId = report.NurseId,
+                    NurseObservations = report.ReportNurseObservations
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating nurse observations for report {ReportId}", id);
+                return StatusCode(500, "Error updating nurse observations for report with id " + id);
             }
         }
 
@@ -158,7 +239,7 @@ namespace NurseLink.API.Controllers
              * The total number of alerts is later used to determine the recovery status.
              *
              * Current rules:
-             * - Pain level greater than or equal to 7 generates 1 alert.
+             * - Pain level greater 6 generates 1 alert.
              * - Fever reported by the patient generates 1 alert.
              * - Bleeding reported by the patient generates 1 alert.
              * - Swelling reported by the patient generates 1 alert.
@@ -167,25 +248,17 @@ namespace NurseLink.API.Controllers
              * Pain level 8 + fever + bleeding = 3 alerts.
              */
 
-            if (painLevel >= 7)
-            {
+            if (painLevel > 6)
                 alerts++;
-            }
 
             if (hasFever)
-            {
                 alerts++;
-            }
 
             if (hasBleeding)
-            {
                 alerts++;
-            }
 
             if (hasSwelling)
-            {
                 alerts++;
-            }
 
             return alerts;
         }
@@ -201,14 +274,10 @@ namespace NurseLink.API.Controllers
              */
 
             if (alertCount == 0)
-            {
                 return ReportStatus.Stable;
-            }
 
             if (alertCount >= 1 && alertCount <= 2)
-            {
                 return ReportStatus.Warning;
-            }
 
             return ReportStatus.Alert;
         }

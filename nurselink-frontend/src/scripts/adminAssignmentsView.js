@@ -10,6 +10,7 @@ export default {
     watch(adminAssignments.selectedNurseId, async () => {
       adminAssignments.resetAssignedPage()
       adminAssignments.assignErrorMessage.value = ''
+      adminAssignments.closeUnassignErrorModal()
 
       try {
         await adminAssignments.loadAssignedPatients()

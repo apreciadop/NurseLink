@@ -19,7 +19,6 @@ namespace NurseLink.API.Domain.DTOs
 
         [MaxLength(255)]
         public string? Password { get; set; }
-
         public bool Active { get; set; } = true;
 
         [Required]

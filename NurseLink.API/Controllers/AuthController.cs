@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using NurseLink.API.Database;
@@ -7,6 +8,7 @@ using NurseLink.API.Domain.Enums;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace NurseLink.API.Controllers
 {
@@ -25,24 +27,22 @@ namespace NurseLink.API.Controllers
             _logger = logger;
         }
 
+        [AllowAnonymous]
         [HttpPost("login")]
         public async Task<ActionResult<LoginResponseDto>> Login([FromBody] LoginRequestDto request)
         {
             if (request == null)
-            {
                 return BadRequest("Request body is required.");
-            }
 
-            if (string.IsNullOrWhiteSpace(request.Email) ||
-                string.IsNullOrWhiteSpace(request.Password))
-            {
+            if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password))
                 return BadRequest("Email and password are required.");
-            }
 
             try
             {
+                var normalizedEmail = request.Email.Trim().ToLower();
+
                 var user = await _context.Users
-                    .FirstOrDefaultAsync(u => u.UserEmail == request.Email && u.UserActive);
+                    .FirstOrDefaultAsync(u => u.UserEmail.ToLower() == normalizedEmail && u.UserActive);
 
                 if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.UserPassword))
                     return Unauthorized("Invalid credentials or user inactive.");
@@ -137,6 +137,61 @@ namespace NurseLink.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error during login for email {Email}", request.Email);
+                return StatusCode(500, "An internal server error occurred.");
+            }
+        }
+
+        [AllowAnonymous]
+        [HttpPost("forgotPassword")]
+        public async Task<ActionResult<ForgotPasswordResponseDto>> ForgotPassword([FromBody] ForgotPasswordRequestDto request)
+        {
+            if (request == null)
+                return BadRequest("Request body is required.");
+
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.NewPassword) ||
+                string.IsNullOrWhiteSpace(request.ConfirmPassword))
+                return BadRequest("Email, new password and confirm password are required.");
+
+            if (request.NewPassword != request.ConfirmPassword)
+                return BadRequest("Passwords do not match.");
+
+            if (request.NewPassword.Length < 6 || request.NewPassword.Length > 255)
+                return BadRequest("Password must be between 6 and 255 characters.");
+
+            var passwordRegex = new Regex(
+                @"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).+$"
+            );
+
+            if (!passwordRegex.IsMatch(request.NewPassword))
+                return BadRequest("Password must contain at least one uppercase letter, one lowercase letter, one number and one special character.");
+
+            try
+            {
+                var normalizedEmail = request.Email.Trim().ToLower();
+
+                var user = await _context.Users
+                    .FirstOrDefaultAsync(u => u.UserEmail.ToLower() == normalizedEmail);
+
+                if (user == null)
+                    return NotFound("User with this email was not found.");
+
+                if (!user.UserActive)
+                    return BadRequest("This user is inactive.");
+
+                user.UserPassword = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
+                await _context.SaveChangesAsync();
+
+                return Ok(new ForgotPasswordResponseDto
+                {
+                    Message = "Password updated successfully."
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error resetting password for email {Email}", request.Email);
                 return StatusCode(500, "An internal server error occurred.");
             }
         }

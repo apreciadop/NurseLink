@@ -16,16 +16,12 @@ namespace NurseLink.API.Domain.DTOs
         [EmailAddress]
         [MaxLength(255)]
         public string Email { get; set; } = string.Empty;
-
         public string? Password { get; set; }
-
         public DateTime? Birthdate { get; set; }
 
         [MaxLength(30)]
         public string? Phone { get; set; }
-
         public string? Photo { get; set; }
-
         public bool Active { get; set; }
     }
 }

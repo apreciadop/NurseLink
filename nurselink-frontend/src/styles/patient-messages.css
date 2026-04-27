@@ -1,0 +1,230 @@
+.patient-messages {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  min-width: 0;
+}
+
+.patient-messages-message {
+  margin: 0;
+  color: var(--color-text-main);
+}
+
+.patient-messages-message-error {
+  color: var(--color-error);
+}
+
+.patient-chat-card {
+  background: var(--color-card-bg);
+  border: 1px solid var(--color-border-soft);
+  border-radius: 1rem;
+  box-shadow: 0 8px 24px rgba(16, 24, 40, 0.06);
+  overflow: hidden;
+  min-width: 0;
+}
+
+.patient-chat-head {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--color-border-soft);
+}
+
+.patient-chat-user {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  min-width: 0;
+}
+
+.patient-chat-user-photo {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: rgba(47, 93, 168, 0.04);
+  border: 1px solid var(--color-border-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-placeholder);
+  font-size: 0.7rem;
+  flex-shrink: 0;
+}
+
+.patient-chat-user-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.patient-chat-user-info {
+  min-width: 0;
+}
+
+.patient-chat-user-info h2 {
+  margin: 0;
+  color: var(--color-primary);
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.patient-chat-user-info p {
+  margin: 0.2rem 0 0;
+  color: var(--color-text-placeholder);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.patient-chat-body {
+  height: 56vh;
+  min-height: 420px;
+  max-height: 68vh;
+  overflow-y: auto;
+  padding: 1rem 1.25rem;
+  background: rgba(47, 93, 168, 0.02);
+}
+
+.patient-chat-messages {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.patient-chat-message-row {
+  display: flex;
+}
+
+.patient-chat-message-row-own {
+  justify-content: flex-end;
+}
+
+.patient-chat-message-row-other {
+  justify-content: flex-start;
+}
+
+.patient-chat-message-bubble {
+  max-width: min(72%, 560px);
+  padding: 0.8rem 0.95rem 0.65rem;
+  border-radius: 1rem;
+  box-shadow: 0 4px 12px rgba(16, 24, 40, 0.05);
+}
+
+.patient-chat-message-bubble-own {
+  background: var(--color-primary);
+  color: var(--color-white);
+  border-bottom-right-radius: 0.35rem;
+}
+
+.patient-chat-message-bubble-other {
+  background: var(--color-card-bg);
+  color: var(--color-text-main);
+  border: 1px solid var(--color-border-soft);
+  border-bottom-left-radius: 0.35rem;
+}
+
+.patient-chat-message-text {
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  line-height: 1.45;
+}
+
+.patient-chat-message-time {
+  display: block;
+  margin-top: 0.45rem;
+  font-size: 0.76rem;
+  opacity: 0.82;
+  text-align: right;
+}
+
+.patient-chat-footer {
+  padding: 1rem 1.25rem 1.2rem;
+  border-top: 1px solid var(--color-border-soft);
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.patient-chat-textarea {
+  width: 100%;
+  min-height: 92px;
+  padding: 0.85rem 0.95rem;
+  border: 1px solid var(--color-border-soft);
+  border-radius: 0.8rem;
+  background: var(--color-white);
+  color: var(--color-text-main);
+  font: inherit;
+  resize: vertical;
+  box-sizing: border-box;
+  outline: none;
+}
+
+.patient-chat-textarea:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-light-ring);
+}
+
+.patient-chat-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.patient-chat-send {
+  min-height: 2.55rem;
+  padding: 0.55rem 1rem;
+  border: 1px solid var(--color-primary);
+  border-radius: 0.65rem;
+  background: var(--color-primary);
+  color: var(--color-white);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.patient-chat-send:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.patient-messages-empty {
+  text-align: center;
+  color: var(--color-text-placeholder);
+  padding: 2rem 1rem;
+}
+
+.patient-messages-empty-panel {
+  border: 1px dashed var(--color-border-soft);
+  border-radius: 0.85rem;
+  background: rgba(47, 93, 168, 0.03);
+}
+
+.patient-chat-loading {
+  margin-top: 0;
+}
+
+@media (max-width: 900px) {
+  .patient-chat-body {
+    min-height: 360px;
+  }
+
+  .patient-chat-message-bubble {
+    max-width: 84%;
+  }
+}
+
+@media (max-width: 640px) {
+  .patient-chat-head,
+  .patient-chat-footer {
+    padding: 1rem;
+  }
+
+  .patient-chat-actions {
+    justify-content: stretch;
+  }
+
+  .patient-chat-send {
+    width: 100%;
+  }
+}

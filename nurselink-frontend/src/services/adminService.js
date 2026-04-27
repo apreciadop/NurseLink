@@ -1,39 +1,5 @@
 import { API_URL } from '../config/api'
-import { getAuthHeaders } from './authService'
-
-async function readResponse(response, fallbackMessage) {
-  const responseText = await response.text()
-
-  let data = null
-  let message = fallbackMessage
-
-  if (responseText) {
-    try {
-      data = JSON.parse(responseText)
-
-      if (data?.message) {
-        message = data.message
-      } else if (data?.title) {
-        message = data.title
-      }
-    } catch {
-      message = responseText
-    }
-  }
-
-  if (!response.ok) {
-    if (data?.errors) {
-      const firstErrorKey = Object.keys(data.errors)[0]
-      const firstErrorMessage = data.errors[firstErrorKey]?.[0]
-
-      throw new Error(firstErrorMessage || message)
-    }
-
-    throw new Error(message)
-  }
-
-  return data
-}
+import { getAuthHeaders, readApiResponse } from './authService'
 
 export async function getDashboardKpis() {
   const response = await fetch(`${API_URL}/api/Admin/dashboardKpis`, {
@@ -41,7 +7,7 @@ export async function getDashboardKpis() {
     headers: getAuthHeaders()
   })
 
-  return await readResponse(response, 'Error loading dashboard KPIs.')
+  return await readApiResponse(response, 'Error loading dashboard KPIs.')
 }
 
 export async function getPatientsWithAlerts() {
@@ -50,7 +16,7 @@ export async function getPatientsWithAlerts() {
     headers: getAuthHeaders()
   })
 
-  return await readResponse(response, 'Error loading patients with alerts.')
+  return await readApiResponse(response, 'Error loading patients with alerts.')
 }
 
 export async function getUnassignedPatients() {
@@ -59,7 +25,7 @@ export async function getUnassignedPatients() {
     headers: getAuthHeaders()
   })
 
-  return await readResponse(response, 'Error loading unassigned patients.')
+  return await readApiResponse(response, 'Error loading unassigned patients.')
 }
 
 export async function getNurses() {
@@ -68,7 +34,7 @@ export async function getNurses() {
     headers: getAuthHeaders()
   })
 
-  return await readResponse(response, 'Error loading nurses.')
+  return await readApiResponse(response, 'Error loading nurses.')
 }
 
 export async function getNursesDetailed() {
@@ -77,7 +43,7 @@ export async function getNursesDetailed() {
     headers: getAuthHeaders()
   })
 
-  return await readResponse(response, 'Error loading detailed nurses.')
+  return await readApiResponse(response, 'Error loading detailed nurses.')
 }
 
 export async function getNurseById(id) {
@@ -86,7 +52,7 @@ export async function getNurseById(id) {
     headers: getAuthHeaders()
   })
 
-  return await readResponse(response, 'Error loading nurse.')
+  return await readApiResponse(response, 'Error loading nurse.')
 }
 
 export async function getAssignedPatientsByNurse(id) {
@@ -95,7 +61,7 @@ export async function getAssignedPatientsByNurse(id) {
     headers: getAuthHeaders()
   })
 
-  return await readResponse(response, 'Error loading assigned patients.')
+  return await readApiResponse(response, 'Error loading assigned patients.')
 }
 
 export async function createNurse(payload) {
@@ -105,7 +71,7 @@ export async function createNurse(payload) {
     body: JSON.stringify(payload)
   })
 
-  return await readResponse(response, 'Error creating nurse.')
+  return await readApiResponse(response, 'Error creating nurse.')
 }
 
 export async function updateNurse(id, payload) {
@@ -115,7 +81,7 @@ export async function updateNurse(id, payload) {
     body: JSON.stringify(payload)
   })
 
-  return await readResponse(response, 'Error updating nurse.')
+  return await readApiResponse(response, 'Error updating nurse.')
 }
 
 export async function createAssignment(payload) {
@@ -125,7 +91,7 @@ export async function createAssignment(payload) {
     body: JSON.stringify(payload)
   })
 
-  return await readResponse(response, 'Error creating assignment.')
+  return await readApiResponse(response, 'Error creating assignment.')
 }
 
 export async function deleteAssignmentByPatient(patientId) {
@@ -134,7 +100,7 @@ export async function deleteAssignmentByPatient(patientId) {
     headers: getAuthHeaders()
   })
 
-  return await readResponse(response, 'Error deleting assignment.')
+  return await readApiResponse(response, 'Error deleting assignment.')
 }
 
 export async function getPatientsDetailed() {
@@ -143,7 +109,7 @@ export async function getPatientsDetailed() {
     headers: getAuthHeaders()
   })
 
-  return await readResponse(response, 'Error getting detailed patients list.')
+  return await readApiResponse(response, 'Error getting detailed patients list.')
 }
 
 export async function createPatient(payload) {
@@ -153,7 +119,7 @@ export async function createPatient(payload) {
     body: JSON.stringify(payload)
   })
 
-  return await readResponse(response, 'Error creating patient.')
+  return await readApiResponse(response, 'Error creating patient.')
 }
 
 export async function getPatientById(id) {
@@ -162,7 +128,7 @@ export async function getPatientById(id) {
     headers: getAuthHeaders()
   })
 
-  return await readResponse(response, 'Error loading patient.')
+  return await readApiResponse(response, 'Error loading patient.')
 }
 
 export async function updatePatient(id, payload) {
@@ -172,7 +138,7 @@ export async function updatePatient(id, payload) {
     body: JSON.stringify(payload)
   })
 
-  return await readResponse(response, 'Error updating patient.')
+  return await readApiResponse(response, 'Error updating patient.')
 }
 
 export async function getSurgeryTypes() {
@@ -181,5 +147,23 @@ export async function getSurgeryTypes() {
     headers: getAuthHeaders()
   })
 
-  return await readResponse(response, 'Error getting surgery types.')
+  return await readApiResponse(response, 'Error getting surgery types.')
+}
+
+export async function getReportsByPatient(patientId) {
+  const response = await fetch(`${API_URL}/api/Reports/patient/${patientId}`, {
+    method: 'GET',
+    headers: getAuthHeaders()
+  })
+
+  return await readApiResponse(response, 'Error loading patient reports.')
+}
+
+export async function getReportById(reportId) {
+  const response = await fetch(`${API_URL}/api/Reports/${reportId}`, {
+    method: 'GET',
+    headers: getAuthHeaders()
+  })
+
+  return await readApiResponse(response, 'Error loading report details.')
 }

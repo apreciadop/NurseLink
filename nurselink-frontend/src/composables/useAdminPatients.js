@@ -308,31 +308,11 @@ export function useAdminPatients() {
 
     return result.filter(patient => {
       const fullName = `${patient.name ?? ''} ${patient.surname ?? ''}`.toLowerCase()
-      const assignedNurse = (patient.assignedNurseName ?? '').toLowerCase()
-      const surgery = (patient.surgery ?? '').toLowerCase()
       const phone = (patient.phone ?? '').toLowerCase()
-      const status = (patient.statusLabel ?? '').toLowerCase()
-      const surgeryDate = (patient.surgeryDate ?? '').toLowerCase()
-      const surgeryDateValue = (patient.surgeryDateValue ?? '').toLowerCase()
-      const birthdate = (patient.birthdate ?? '').toLowerCase()
-      const birthdateValue = (patient.birthdateValue ?? '').toLowerCase()
-      const age = patient.age != null ? String(patient.age) : ''
-      const alerts = String(patient.alertCount ?? 0)
-      const active = patient.active ? 'active' : 'inactive'
 
       return (
         fullName.includes(value) ||
-        assignedNurse.includes(value) ||
-        surgery.includes(value) ||
-        phone.includes(value) ||
-        status.includes(value) ||
-        surgeryDate.includes(value) ||
-        surgeryDateValue.includes(value) ||
-        birthdate.includes(value) ||
-        birthdateValue.includes(value) ||
-        age.includes(value) ||
-        alerts.includes(value) ||
-        active.includes(value)
+        phone.includes(value)
       )
     })
   })

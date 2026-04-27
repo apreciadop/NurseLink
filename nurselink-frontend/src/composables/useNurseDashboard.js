@@ -1,7 +1,10 @@
 import { computed, ref, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import {
   getAssignedPatientsByNurse,
-  getReportsByPatient
+  getReportById,
+  getReportsByPatient,
+  nurseObservations
 } from '../services/nurseService'
 import {
   formatDate,
@@ -9,6 +12,8 @@ import {
 } from '../utils/dateUtils'
 
 export function useNurseDashboard() {
+  const router = useRouter()
+
   const patients = ref([])
   const reports = ref([])
 
@@ -29,6 +34,15 @@ export function useNurseDashboard() {
 
   const reportsLoading = ref(false)
   const reportsErrorMessage = ref('')
+
+  const isReportModalOpen = ref(false)
+  const reportDetailLoading = ref(false)
+  const reportDetailErrorMessage = ref('')
+  const reportSaveLoading = ref(false)
+  const reportSaveErrorMessage = ref('')
+  const selectedReport = ref(null)
+
+  const painLevels = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
   const getCurrentNurseId = () => {
     const userId = localStorage.getItem('userId')
@@ -125,6 +139,8 @@ export function useNurseDashboard() {
       hasFever: report.hasFever ?? report.fever ?? false,
       hasBleeding: report.hasBleeding ?? report.bleeding ?? false,
       hasSwelling: report.hasSwelling ?? report.swelling ?? false,
+      observations: report.observations ?? '',
+      nurseObservations: report.nurseObservations ?? '',
       alertCount
     }
   }
@@ -205,6 +221,14 @@ export function useNurseDashboard() {
     await loadPatientReports(patient.patientId)
   }
 
+  const openPatientProfile = (patient) => {
+    if (!patient?.patientId) {
+      return
+    }
+
+    router.push(`/nurse/patients/${patient.patientId}`)
+  }
+
   const selectFirstFilteredPatient = async () => {
     currentPage.value = 1
     reportsCurrentPage.value = 1
@@ -240,6 +264,61 @@ export function useNurseDashboard() {
       console.error('Assigned patients error:', error)
     } finally {
       loading.value = false
+    }
+  }
+
+  const openViewReportModal = async (report) => {
+    if (!report?.reportId) {
+      return
+    }
+
+    isReportModalOpen.value = true
+    reportDetailLoading.value = true
+    reportDetailErrorMessage.value = ''
+    reportSaveErrorMessage.value = ''
+    selectedReport.value = null
+
+    try {
+      const data = await getReportById(report.reportId)
+      selectedReport.value = mapReport(data)
+    } catch (error) {
+      reportDetailErrorMessage.value = error.message || 'Error loading report details.'
+    } finally {
+      reportDetailLoading.value = false
+    }
+  }
+
+  const closeViewReportModal = () => {
+    isReportModalOpen.value = false
+    reportDetailLoading.value = false
+    reportDetailErrorMessage.value = ''
+    reportSaveErrorMessage.value = ''
+    reportSaveLoading.value = false
+    selectedReport.value = null
+  }
+
+  const saveNurseObservations = async () => {
+    if (!selectedReport.value?.reportId) {
+      return
+    }
+
+    reportSaveErrorMessage.value = ''
+    reportSaveLoading.value = true
+
+    try {
+      const data = await nurseObservations(selectedReport.value.reportId, {
+        nurseObservations: selectedReport.value.nurseObservations?.trim() || null
+      })
+
+      selectedReport.value = mapReport(data)
+
+      if (selectedPatient.value?.patientId) {
+        await loadPatientReports(selectedPatient.value.patientId)
+      }
+    } catch (error) {
+      reportSaveErrorMessage.value = error.message || 'Error saving nurse observations.'
+    } finally {
+      reportSaveLoading.value = false
     }
   }
 
@@ -300,9 +379,20 @@ export function useNurseDashboard() {
     paginatedPatients,
     reportsTotalPages,
     paginatedReports,
+    isReportModalOpen,
+    reportDetailLoading,
+    reportDetailErrorMessage,
+    reportSaveLoading,
+    reportSaveErrorMessage,
+    selectedReport,
+    painLevels,
     loadAssignedPatients,
     loadPatientReports,
     selectPatient,
+    openPatientProfile,
+    openViewReportModal,
+    closeViewReportModal,
+    saveNurseObservations,
     resetPatientsPage,
     goToPreviousPage,
     goToNextPage,

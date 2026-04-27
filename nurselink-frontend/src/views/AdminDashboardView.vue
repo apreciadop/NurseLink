@@ -2,16 +2,9 @@
 
 <template>
   <section class="admin-dashboard">
-    <p v-if="loading" class="admin-dashboardmessage">
-      Loading dashboard data...
-    </p>
+    <p v-if="loading" class="admin-dashboardmessage">Loading dashboard data...</p>
 
-    <p
-      v-else-if="errorMessage"
-      class="admin-dashboardmessage admin-dashboardmessage--error"
-    >
-      {{ errorMessage }}
-    </p>
+    <p v-else-if="errorMessage" class="admin-dashboardmessage admin-dashboardmessage--error">{{ errorMessage }}</p>
 
     <template v-else>
       <section class="admin-dashboardstats">
@@ -60,41 +53,15 @@
                   </thead>
 
                   <tbody>
-                    <tr
-                      v-for="patient in patientsWithAlerts"
-                      :key="patient.patientId"
-                    >
-                      <td :title="`${patient.patientName} ${patient.patientSurname}`">
-                        {{ patient.patientName }} {{ patient.patientSurname }}
-                      </td>
-
-                      <td :title="`${patient.nurseName} ${patient.nurseSurname}`">
-                        {{ patient.nurseName }} {{ patient.nurseSurname }}
-                      </td>
-
-                      <td :title="patient.reportDate || '-'">
-                        {{ patient.reportDate || '-' }}
-                      </td>
-
-                      <td :title="patient.reportStatus || '-'">
-                        {{ patient.reportStatus || '-' }}
-                      </td>
-
-                      <td :title="String(patient.reportPain ?? '-')">
-                        {{ patient.reportPain ?? '-' }}
-                      </td>
-
-                      <td :title="patient.reportFever ? 'Yes' : 'No'">
-                        {{ patient.reportFever ? 'Yes' : 'No' }}
-                      </td>
-
-                      <td :title="patient.reportBleeding ? 'Yes' : 'No'">
-                        {{ patient.reportBleeding ? 'Yes' : 'No' }}
-                      </td>
-
-                      <td :title="patient.reportSwelling ? 'Yes' : 'No'">
-                        {{ patient.reportSwelling ? 'Yes' : 'No' }}
-                      </td>
+                    <tr v-for="patient in patientsWithAlerts" :key="patient.patientId">
+                      <td :title="`${patient.patientName} ${patient.patientSurname}`">{{ patient.patientName }} {{ patient.patientSurname }}</td>
+                      <td :title="`${patient.nurseName} ${patient.nurseSurname}`">{{ patient.nurseName }} {{ patient.nurseSurname }}</td>
+                      <td :title="patient.reportDate || '-'">{{ patient.reportDate || '-' }}</td>
+                      <td :title="patient.reportStatus || '-'">{{ patient.reportStatus || '-' }}</td>
+                      <td :title="String(patient.reportPain ?? '-')">{{ patient.reportPain ?? '-' }}</td>
+                      <td :title="patient.reportFever ? 'Yes' : 'No'">{{ patient.reportFever ? 'Yes' : 'No' }}</td>
+                      <td :title="patient.reportBleeding ? 'Yes' : 'No'">{{ patient.reportBleeding ? 'Yes' : 'No' }}</td>
+                      <td :title="patient.reportSwelling ? 'Yes' : 'No'">{{ patient.reportSwelling ? 'Yes' : 'No' }}</td>
                     </tr>
                   </tbody>
                 </table>
@@ -124,35 +91,14 @@
                   </thead>
 
                   <tbody>
-                    <tr
-                      v-for="patient in unassignedPatients"
-                      :key="patient.patientId"
-                    >
-                      <td :title="`${patient.patientName} ${patient.patientSurname}`">
-                        {{ patient.patientName }} {{ patient.patientSurname }}
-                      </td>
-
-                      <td :title="patient.surgeryTypeName || '-'">
-                        {{ patient.surgeryTypeName || '-' }}
-                      </td>
-
-                      <td :title="patient.surgeryDate || '-'">
-                        {{ patient.surgeryDate || '-' }}
-                      </td>
-
+                    <tr v-for="patient in unassignedPatients" :key="patient.patientId">
+                      <td :title="`${patient.patientName} ${patient.patientSurname}`">{{ patient.patientName }} {{ patient.patientSurname }}</td>
+                      <td :title="patient.surgeryTypeName || '-'">{{ patient.surgeryTypeName || '-' }}</td>
+                      <td :title="patient.surgeryDate || '-'">{{ patient.surgeryDate || '-' }}</td>
                       <td>
-                        <button
-                          type="button"
-                          class="dashboard-action-button dashboard-action-button--icon"
-                          :aria-label="`Assign patient ${patient.patientName} ${patient.patientSurname}`"
-                          title="Assign patient"
-                          @click="openAssignModal(patient)"
-                        >
-                          <img
-                            src="/icons/assignmentBlack.png"
-                            alt="Assign patient to a Nurse"
-                            class="dashboard-action-icon-image"
-                          />
+                        <button type="button" class="dashboard-action-button dashboard-action-button--icon" :aria-label="`Assign patient ${patient.patientName} ${patient.patientSurname}`"
+                          title="Assign patient" @click="openAssignModal(patient)">
+                          <img src="/icons/assignmentBlack.png" alt="Assign patient to a Nurse" class="dashboard-action-icon-image"/>
                         </button>
                       </td>
                     </tr>
@@ -167,87 +113,40 @@
       </section>
     </template>
 
-    <div
-      v-if="isAssignModalOpen"
-      class="dashboard-modal-overlay"
-      @click="closeAssignModal"
-    >
+    <div v-if="isAssignModalOpen" class="dashboard-modal-overlay" @click="closeAssignModal">
       <div class="dashboard-modal" @click.stop>
         <header class="dashboard-modalheader">
           <h2>Assign Patient</h2>
 
-          <button
-            type="button"
-            class="dashboard-modalclose"
-            aria-label="Close assignment modal"
-            @click="closeAssignModal"
-          >
-            ×
-          </button>
+          <button type="button" class="dashboard-modalclose" aria-label="Close assignment modal" @click="closeAssignModal">x</button>
         </header>
 
         <section v-if="selectedPatient" class="dashboard-modalbody">
           <div class="dashboard-modalpatient-info">
-            <p>
-              <strong>Patient:</strong>
-              {{ selectedPatient.patientName }} {{ selectedPatient.patientSurname }}
-            </p>
+            <p><strong>Patient:</strong>{{ selectedPatient.patientName }} {{ selectedPatient.patientSurname }}</p>
 
-            <p>
-              <strong>Surgery:</strong>
-              {{ selectedPatient.surgeryTypeName || '-' }}
-            </p>
+            <p><strong>Surgery:</strong>{{ selectedPatient.surgeryTypeName || '-' }}</p>
 
-            <p>
-              <strong>Date:</strong>
-              {{ selectedPatient.surgeryDate || '-' }}
-            </p>
+            <p><strong>Date:</strong>{{ selectedPatient.surgeryDate || '-' }}</p>
           </div>
 
           <div class="dashboard-modalfield">
-            <label for="nurseSelect" class="dashboard-modallabel">
-              Select Nurse
-            </label>
+            <label for="nurseSelect" class="dashboard-modallabel">Select Nurse</label>
 
-            <select
-              id="nurseSelect"
-              v-model="selectedNurseId"
-              class="dashboard-modalselect"
-            >
+            <select id="nurseSelect" v-model="selectedNurseId" class="dashboard-modalselect">
               <option value="">Select a nurse</option>
 
-              <option
-                v-for="nurse in nurses"
-                :key="nurse.nurseId"
-                :value="nurse.nurseId"
-              >
-                {{ nurse.name }} {{ nurse.surname }}
-              </option>
+              <option v-for="nurse in nurses" :key="nurse.nurseId" :value="nurse.nurseId">{{ nurse.name }} {{ nurse.surname }}</option>
             </select>
           </div>
 
-          <p v-if="assignErrorMessage" class="dashboard-modalerror">
-            {{ assignErrorMessage }}
-          </p>
+          <p v-if="assignErrorMessage" class="dashboard-modalerror">{{ assignErrorMessage }}</p>
         </section>
 
         <footer class="dashboard-modalfooter">
-          <button
-            type="button"
-            class="dashboard-modalbutton dashboard-modalbutton--secondary"
-            @click="closeAssignModal"
-          >
-            Cancel
-          </button>
+          <button type="button" class="dashboard-modalbutton dashboard-modalbutton--secondary" @click="closeAssignModal">Cancel</button>
 
-          <button
-            type="button"
-            class="dashboard-modalbutton dashboard-modalbutton--primary"
-            :disabled="assignLoading"
-            @click="submitAssignment"
-          >
-            {{ assignLoading ? 'Assigning...' : 'Assign' }}
-          </button>
+          <button type="button" class="dashboard-modalbutton dashboard-modalbutton--primary" :disabled="assignLoading" @click="submitAssignment">{{ assignLoading ? 'Assigning...' : 'Assign' }}</button>
         </footer>
       </div>
     </div>

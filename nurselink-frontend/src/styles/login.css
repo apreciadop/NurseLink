@@ -99,15 +99,157 @@ input:focus {
 
 .forgot-password {
   display: block;
+  width: 100%;
   text-align: center;
   margin-top: 14px;
   color: var(--color-link);
   text-decoration: none;
   font-size: 14px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
 }
 
 .forgot-password:hover {
   text-decoration: underline;
+}
+
+.forgot-password-modal {
+  position: fixed;
+  inset: 0;
+  background: var(--color-logout-overlay-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+.forgot-password-modalcard {
+  width: 100%;
+  max-width: 420px;
+  background: var(--color-card-bg);
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  padding: 18px 18px 20px;
+  box-sizing: border-box;
+}
+
+.forgot-password-modalhead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.forgot-password-modalhead h3 {
+  margin: 0;
+  color: var(--color-text-main);
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.forgot-password-modalclose {
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid var(--color-border-soft);
+  border-radius: 0.55rem;
+  background: var(--color-card-bg);
+  color: var(--color-text-main);
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+.forgot-password-modalclose:hover {
+  background: var(--color-navigation-hover-bg);
+}
+
+.forgot-password-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.forgot-password-error {
+  margin-top: 4px;
+}
+
+.forgot-password-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.forgot-password-cancel,
+.forgot-password-submit {
+  min-width: 110px;
+  padding: 10px 14px;
+  border-radius: var(--radius-input);
+  font-family: var(--font-family-base);
+  font-size: 0.92rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.forgot-password-cancel {
+  border: 1px solid var(--color-border-main);
+  background: var(--color-card-bg);
+  color: var(--color-text-main);
+}
+
+.forgot-password-submit {
+  border: none;
+  background: var(--color-primary);
+  color: var(--color-white);
+}
+
+.forgot-password-submit:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.forgot-password-success-card {
+  width: 100%;
+  max-width: 360px;
+  background: var(--color-card-bg);
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  padding: 22px 20px 20px;
+  box-sizing: border-box;
+  text-align: center;
+}
+
+.forgot-password-success-card h3 {
+  margin: 0 0 10px;
+  color: var(--color-text-main);
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.forgot-password-success-card p {
+  margin: 0 0 16px;
+  color: var(--color-primary);
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.forgot-password-success-button {
+  min-width: 110px;
+  padding: 10px 14px;
+  border: none;
+  border-radius: var(--radius-input);
+  background: var(--color-primary);
+  color: var(--color-white);
+  font-family: var(--font-family-base);
+  font-size: 0.92rem;
+  font-weight: 600;
+  cursor: pointer;
 }
 
 @media (max-width: 480px) {
@@ -147,5 +289,26 @@ input:focus {
 
   .forgot-password {
     font-size: 13px;
+  }
+
+  .forgot-password-modalcard {
+    padding: 16px;
+  }
+
+  .forgot-password-actions {
+    flex-direction: column;
+  }
+
+  .forgot-password-cancel,
+  .forgot-password-submit {
+    width: 100%;
+  }
+
+  .forgot-password-success-card {
+    padding: 18px 16px;
+  }
+
+  .forgot-password-success-button {
+    width: 100%;
   }
 }

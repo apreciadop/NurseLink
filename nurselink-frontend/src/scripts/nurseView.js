@@ -12,16 +12,27 @@ export default {
 
   computed: {
     isDashboardSection() {
-      return this.$route.path === '/nurse/dashboard'
+      return (
+        this.$route.path === '/nurse/dashboard' ||
+        this.$route.path.startsWith('/nurse/patients/')
+      )
     },
 
     isMessagesSection() {
       return this.$route.path.startsWith('/nurse/messages')
     },
 
+    isPatientProfileSection() {
+      return this.$route.path.startsWith('/nurse/patients/')
+    },
+
     currentSectionTitle() {
       if (this.isMessagesSection) {
         return 'Messages'
+      }
+
+      if (this.isPatientProfileSection) {
+        return 'Patient Profile'
       }
 
       return 'Dashboard'

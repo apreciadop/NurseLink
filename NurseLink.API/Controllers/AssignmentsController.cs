@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using NurseLink.API.Database;
 using NurseLink.API.Domain.DTOs;
@@ -6,6 +7,7 @@ using NurseLink.API.Domain.Entities;
 
 namespace NurseLink.API.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class AssignmentsController(NurseLinkDbContext context, ILogger<AssignmentsController> logger) : ControllerBase
@@ -61,15 +63,12 @@ namespace NurseLink.API.Controllers
                 {
                     Message = "Assignment created successfully.",
                     AssignmentId = assignment.AssignmentId,
-
                     PatientId = patient.PatientId,
                     PatientName = patient.User.UserName,
                     PatientSurname = patient.User.UserSurname,
-
                     NurseId = nurse.NurseId,
                     NurseName = nurse.User.UserName,
                     NurseSurname = nurse.User.UserSurname,
-
                     CreatedAt = assignment.CreatedAt
                 });
             }
@@ -84,9 +83,7 @@ namespace NurseLink.API.Controllers
         public async Task<ActionResult<DeleteAssignmentResponseDto>> DeleteByPatient(int patientId)
         {
             if (patientId <= 0)
-            {
                 return BadRequest("PatientId must be greater than 0.");
-            }
 
             try
             {
@@ -94,9 +91,13 @@ namespace NurseLink.API.Controllers
                     .FirstOrDefaultAsync(a => a.PatientId == patientId);
 
                 if (assignment == null)
-                {
                     return NotFound("Assignment not found for this patient.");
-                }
+
+                var hasReports = await _context.Reports
+                    .AnyAsync(r => r.PatientId == assignment.PatientId);
+
+                if (hasReports)
+                    return BadRequest("This patient cannot be unassigned because there are already symptom reports for this patient.");
 
                 var hasConversation = await _context.Conversations
                     .AnyAsync(c =>
@@ -104,9 +105,7 @@ namespace NurseLink.API.Controllers
                         c.NurseId == assignment.NurseId);
 
                 if (hasConversation)
-                {
                     return BadRequest("This patient cannot be unassigned because there is an existing conversation with the assigned nurse.");
-                }
 
                 var response = new DeleteAssignmentResponseDto
                 {

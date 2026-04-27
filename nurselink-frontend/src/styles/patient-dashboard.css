@@ -364,7 +364,11 @@
 .patient-dashboard-table thead th:nth-child(3),
 .patient-dashboard-table tbody td:nth-child(3),
 .patient-dashboard-table thead th:nth-child(7),
-.patient-dashboard-table tbody td:nth-child(7) {
+.patient-dashboard-table tbody td:nth-child(7),
+.patient-dashboard-table thead th:nth-child(8),
+.patient-dashboard-table tbody td:nth-child(8),
+.patient-dashboard-table thead th:nth-child(9),
+.patient-dashboard-table tbody td:nth-child(9) {
   text-align: center;
 }
 
@@ -374,6 +378,42 @@
 
 .patient-dashboard-alertbadge {
   min-width: 52px;
+}
+
+.patient-dashboard-notebadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 76px;
+  padding: 0.36rem 0.75rem;
+  border-radius: 999px;
+  background: var(--color-soft-panel-bg);
+  color: var(--color-primary);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.patient-dashboard-viewicon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.2rem;
+  height: 2.2rem;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.patient-dashboard-viewicon {
+  width: 1.3rem;
+  height: 1.3rem;
+  object-fit: contain;
+  transition: transform 0.18s ease;
+}
+
+.patient-dashboard-viewicon-button:hover .patient-dashboard-viewicon {
+  transform: scale(1.14);
 }
 
 .patient-dashboard-empty {

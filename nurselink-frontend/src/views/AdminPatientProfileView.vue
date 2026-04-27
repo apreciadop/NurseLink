@@ -2,168 +2,97 @@
 
 <template>
   <section class="admin-patient-profile">
-    <header class="patient-profile-top">
-      <router-link to="/admin/patients" class="patient-profile-back">
-        ← Back to Patients
-      </router-link>
-    </header>
+    <div class="patient-profile-top">
+      <router-link to="/admin/patients" class="patient-profile-back"><- Back to Patients</router-link>
+    </div>
 
-    <p v-if="loading" class="patient-profile-message">Loading patient...</p>
+    <p v-if="loading" class="patient-profile-message">Loading patient profile...</p>
 
-    <p
-      v-else-if="errorMessage"
-      class="patient-profile-message patient-profile-message-error"
-    >
-      {{ errorMessage }}
-    </p>
+    <p v-else-if="errorMessage" class="patient-profile-message patient-profile-message-error">{{ errorMessage }}</p>
 
     <section v-else class="patient-profile-main">
+      <p v-if="saveMessage" class="patient-profile-message patient-profile-message-success">{{ saveMessage }}</p>
+
+      <p v-if="saveErrorMessage" class="patient-profile-message patient-profile-message-error">{{ saveErrorMessage }}</p>
+
       <section class="patient-profile-toprow">
-        <section class="patient-profile-left">
-          <div class="patient-profile-photo">
-            <img
-              v-if="patientForm.photo"
-              :src="patientForm.photo"
-              alt="Patient photo"
-            />
-            <span v-else>No photo</span>
+        <div class="patient-profile-left">
+          <div class="patient-profile-photo-column">
+            <div class="patient-profile-photo">
+              <img v-if="patientForm.photo" :src="patientForm.photo" alt="Patient photo"/>
+              <span v-else>No photo</span>
+            </div>
+
+            <span :class="['patient-profile-statusbadge', patientForm.statusLabel === 'Stable' ? 'patient-profile-statusbadge-stable' : patientForm.statusLabel === 'Warning'
+              ? 'patient-profile-statusbadge-warning'
+              : 'patient-profile-statusbadge-alert']">{{ patientForm.statusLabel }}
+            </span>
           </div>
 
           <div class="patient-profile-summary">
-            <h2 class="patient-profile-name">
-              {{ patientForm.name }} {{ patientForm.surname }}
-            </h2>
+            <h2 class="patient-profile-name">{{ patientForm.name }} {{ patientForm.surname }}</h2>
 
             <p class="patient-profile-id">Patient ID {{ patientForm.patientId }}</p>
 
-            <label
-              for="patientProfilePhotoInput"
-              class="patient-profile-photo-button"
-            >
-              <img
-                src="/icons/cameraBlue.png"
-                alt=""
-                class="patient-profile-photo-button-icon"
-              />
+            <label class="patient-profile-photo-button" for="patientPhotoInput">
+              <img src="/icons/camera.png" alt="Change Photo" class="patient-profile-photo-button-icon"/>
               <span>Change Photo</span>
             </label>
 
-            <input
-              id="patientProfilePhotoInput"
-              type="file"
-              class="patient-profile-fileinput"
-              accept="image/*"
-              @change="handlePhotoChange"
-            />
+            <input id="patientPhotoInput" type="file" accept="image/*" class="patient-profile-fileinput" @change="handlePhotoChange"/>
           </div>
-        </section>
+        </div>
 
-        <section class="patient-profile-right">
+        <div class="patient-profile-right">
           <h3 class="patient-profile-section-title">Patient Details</h3>
 
           <div class="patient-profile-formgrid patient-profile-formgrid-threecols">
             <div class="patient-profile-field">
-              <label for="patientName" class="patient-profile-label">Name</label>
-              <input
-                id="patientName"
-                v-model="patientForm.name"
-                type="text"
-                class="patient-profile-input"
-                placeholder="Name"
-              />
+              <label class="patient-profile-label" for="patientName">Name</label>
+              <input id="patientName" v-model="patientForm.name" type="text" class="patient-profile-input"/>
             </div>
 
             <div class="patient-profile-field">
-              <label for="patientSurname" class="patient-profile-label">Surname</label>
-              <input
-                id="patientSurname"
-                v-model="patientForm.surname"
-                type="text"
-                class="patient-profile-input"
-                placeholder="Surname"
-              />
+              <label class="patient-profile-label" for="patientSurname">Surname</label>
+              <input id="patientSurname" v-model="patientForm.surname" type="text" class="patient-profile-input"/>
             </div>
 
             <div class="patient-profile-field">
-              <label for="patientBirthdate" class="patient-profile-label">Birthdate</label>
-              <input
-                id="patientBirthdate"
-                v-model="patientForm.birthdate"
-                type="date"
-                class="patient-profile-input"
-              />
+              <label class="patient-profile-label" for="patientBirthdate">Birthdate</label>
+              <input id="patientBirthdate" v-model="patientForm.birthdate" type="date" class="patient-profile-input"/>
             </div>
 
             <div class="patient-profile-field">
-              <label for="patientEmail" class="patient-profile-label">Email</label>
-              <input
-                id="patientEmail"
-                v-model="patientForm.email"
-                type="email"
-                class="patient-profile-input"
-                placeholder="Email"
-              />
+              <label class="patient-profile-label" for="patientEmail">Email</label>
+              <input id="patientEmail" v-model="patientForm.email" type="email" class="patient-profile-input"/>
             </div>
 
             <div class="patient-profile-field">
-              <label for="patientPassword" class="patient-profile-label">Password</label>
-              <input
-                id="patientPassword"
-                v-model="patientForm.password"
-                type="password"
-                class="patient-profile-input"
-                placeholder="Leave empty to keep current password"
-              />
+              <label class="patient-profile-label" for="patientPassword">Password</label>
+              <input id="patientPassword" v-model="patientForm.password" type="password" class="patient-profile-input" placeholder="Leave empty to keep current password"/>
             </div>
 
             <div class="patient-profile-field">
-              <label for="patientPhone" class="patient-profile-label">Phone</label>
-              <input
-                id="patientPhone"
-                v-model="patientForm.phone"
-                type="text"
-                class="patient-profile-input"
-                placeholder="Phone"
-              />
+              <label class="patient-profile-label" for="patientPhone">Phone</label>
+              <input id="patientPhone" v-model="patientForm.phone" type="text" class="patient-profile-input"/>
             </div>
 
             <div class="patient-profile-field">
-              <label for="patientAssignedNurse" class="patient-profile-label">Assigned Nurse</label>
-              <input
-                id="patientAssignedNurse"
-                :value="patientForm.assignedNurseName || 'No nurse assigned'"
-                type="text"
-                class="patient-profile-input"
-                readonly
-              />
+              <label class="patient-profile-label" for="assignedNurse">Assigned Nurse</label>
+              <input id="assignedNurse" :value="patientForm.assignedNurseName || 'No nurse assigned'" type="text" class="patient-profile-input" readonly/>
             </div>
 
             <div class="patient-profile-field">
-              <label for="patientSurgeryType" class="patient-profile-label">Surgery</label>
-              <select
-                id="patientSurgeryType"
-                v-model="patientForm.surgeryTypeId"
-                class="patient-profile-input patient-profile-select"
-              >
-                <option :value="0" disabled>Select a surgery</option>
-                <option
-                  v-for="surgeryType in surgeryTypes"
-                  :key="surgeryType.surgeryTypeId"
-                  :value="surgeryType.surgeryTypeId"
-                >
-                  {{ surgeryType.name }}
-                </option>
+              <label class="patient-profile-label" for="patientSurgery">Surgery</label>
+              <select id="patientSurgery" v-model="patientForm.surgeryTypeId" class="patient-profile-input patient-profile-select">
+                <option :value="0" disabled>Select surgery</option>
+                <option v-for="surgeryType in surgeryTypes" :key="surgeryType.surgeryTypeId" :value="surgeryType.surgeryTypeId">{{ surgeryType.name }}</option>
               </select>
             </div>
 
             <div class="patient-profile-field">
-              <label for="patientSurgeryDate" class="patient-profile-label">Surgery Date</label>
-              <input
-                id="patientSurgeryDate"
-                v-model="patientForm.surgeryDate"
-                type="date"
-                class="patient-profile-input"
-              />
+              <label class="patient-profile-label" for="patientSurgeryDate">Surgery Date</label>
+              <input id="patientSurgeryDate" v-model="patientForm.surgeryDate" type="date" class="patient-profile-input"/>
             </div>
 
             <div class="patient-profile-statusrow">
@@ -171,65 +100,90 @@
 
               <div class="patient-profile-statusgroup">
                 <label class="patient-profile-statusoption">
-                  <input v-model="patientForm.active" :value="true" type="radio" />
+                  <input v-model="patientForm.active" type="radio" :value="true"/>
                   <span>Active</span>
                 </label>
 
                 <label class="patient-profile-statusoption">
-                  <input v-model="patientForm.active" :value="false" type="radio" />
+                  <input v-model="patientForm.active" type="radio" :value="false"/>
                   <span>Inactive</span>
                 </label>
               </div>
 
-              <button
-                type="button"
-                class="patient-profile-save"
-                :disabled="saveLoading"
-                @click="submitUpdatePatient"
-              >
-                {{ saveLoading ? 'Saving...' : 'Save' }}
-              </button>
+              <button type="button" class="patient-profile-save" :disabled="saveLoading" @click="submitUpdatePatient">{{ saveLoading ? 'Saving...' : 'Save' }}</button>
             </div>
           </div>
-
-          <p
-            v-if="saveErrorMessage"
-            class="patient-profile-message patient-profile-message-error"
-          >
-            {{ saveErrorMessage }}
-          </p>
-
-          <p
-            v-if="saveMessage"
-            class="patient-profile-message patient-profile-message-success"
-          >
-            {{ saveMessage }}
-          </p>
-        </section>
+        </div>
       </section>
 
       <section class="patient-profile-observations">
         <h3 class="patient-profile-section-title">Observations</h3>
-
-        <textarea
-          v-model="patientForm.patientObservations"
-          class="patient-profile-textarea"
-          placeholder="Write observations..."
-        ></textarea>
+        <textarea v-model="patientForm.patientObservations" class="patient-profile-textarea"></textarea>
       </section>
 
       <section class="patient-profile-reports">
         <header class="patient-profile-reportshead">
-          <h3 class="patient-profile-reportstitle">Patient Symptom Reports</h3>
+          <h3 class="patient-profile-reportstitle">Symptom Reports</h3>
         </header>
 
-        <section class="patient-profile-reportsbody">
-          <p class="patient-profile-reportsplaceholder">
-            Reports table will be added here later.
-          </p>
-        </section>
+        <div class="patient-profile-reportsbody">
+          <div v-if="reportsLoading" class="patient-profile-empty patient-profile-empty-panel">Loading reports...</div>
+          <p v-else-if="reportsErrorMessage" class="patient-profile-message patient-profile-message-error">{{ reportsErrorMessage }}</p>
+
+          <div v-else class="patient-profile-tablewrap">
+            <table class="patient-profile-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Patient Status</th>
+                  <th>Pain Level</th>
+                  <th>Fever</th>
+                  <th>Bleeding</th>
+                  <th>Swelling</th>
+                  <th>Alerts</th>
+                  <th>View</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                <tr v-if="!hasReports">
+                  <td colspan="8" class="patient-profile-empty">No symptom reports found.</td>
+                </tr>
+
+                <tr v-for="report in reports" :key="report.reportId">
+                  <td>{{ report.reportDate || '-' }}</td>
+
+                  <td class="patient-profile-col-center">
+                    <span :class="[ 'patient-profile-reportstatusbadge', report.statusLabel === 'Stable' ? 'patient-profile-statusbadge-stable' : report.statusLabel === 'Warning'
+                      ? 'patient-profile-statusbadge-warning'
+                      : 'patient-profile-statusbadge-alert']">{{ report.statusLabel }}</span>
+                  </td>
+
+                  <td class="patient-profile-col-center">{{ report.painLevel ?? '-' }}</td>
+                  <td class="patient-profile-col-center">{{ report.hasFever ? 'Yes' : 'No' }}</td>
+                  <td class="patient-profile-col-center">{{ report.hasBleeding ? 'Yes' : 'No' }}</td>
+                  <td class="patient-profile-col-center">{{ report.hasSwelling ? 'Yes' : 'No' }}</td>
+
+                  <td class="patient-profile-col-center">
+                    <span :class="['patient-profile-alertbadge', report.alertCount === 0 ? 'patient-profile-alertbadge-stable' : report.alertCount <= 2
+                      ? 'patient-profile-alertbadge-warning'
+                      : 'patient-profile-alertbadge-alert']">{{ report.alertCount }}</span>
+                  </td>
+
+                  <td class="patient-profile-col-center">
+                    <button type="button" class="patient-profile-viewicon-button" @click.stop="openViewReportModal(report)" aria-label="View report" title="View report">
+                      <img src="/icons/view.png" alt="View report" class="patient-profile-viewicon"/>
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
       </section>
     </section>
+
+    <ReportModal :visible="isReportModalOpen" mode="view" :report="selectedReport || {}" :pain-levels="painLevels" :loading="reportDetailLoading" :error-message="reportDetailErrorMessage" @close="closeViewReportModal"/>
   </section>
 </template>
 

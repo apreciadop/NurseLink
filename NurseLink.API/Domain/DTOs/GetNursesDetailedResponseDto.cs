@@ -10,7 +10,6 @@
         public bool Active { get; set; }
         public int PatientCount { get; set; }
         public int AlertCount { get; set; }
-
         public string? Photo { get; set; }
     }
 }

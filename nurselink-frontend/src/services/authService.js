@@ -1,5 +1,45 @@
 import { API_URL } from '../config/api'
 
+export async function readApiResponse(response, fallbackMessage) {
+  const responseText = await response.text()
+
+  let data = null
+  let message = fallbackMessage
+
+  if (responseText) {
+    try {
+      data = JSON.parse(responseText)
+
+      if (data?.message) {
+        message = data.message
+      } else if (data?.title) {
+        message = data.title
+      }
+    } catch {
+      message = responseText
+    }
+  }
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      logoutUser()
+      window.location.href = '/login'
+      throw new Error('Session expired.')
+    }
+
+    if (data?.errors) {
+      const firstErrorKey = Object.keys(data.errors)[0]
+      const firstErrorMessage = data.errors[firstErrorKey]?.[0]
+
+      throw new Error(firstErrorMessage || message)
+    }
+
+    throw new Error(message)
+  }
+
+  return data
+}
+
 export async function loginUser(email, password) {
   const response = await fetch(`${API_URL}/api/Auth/login`, {
     method: 'POST',
@@ -12,19 +52,19 @@ export async function loginUser(email, password) {
     })
   })
 
-  let data = {}
+  return await readApiResponse(response, 'Login failed.')
+}
 
-  try {
-    data = await response.json()
-  } catch {
-    data = {}
-  }
+export async function forgotPassword(request) {
+  const response = await fetch(`${API_URL}/api/Auth/forgotPassword`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(request)
+  })
 
-  if (!response.ok) {
-    throw new Error(data.message || 'Login failed.')
-  }
-
-  return data
+  return await readApiResponse(response, 'Error updating password.')
 }
 
 export function getAuthToken() {
