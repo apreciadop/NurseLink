@@ -14,6 +14,7 @@ import {
 export function useAdminAssignments() {
   const loading = ref(false)
   const errorMessage = ref('')
+  const successMessage = ref('')
 
   const nurses = ref([])
   const selectedNurseId = ref('')
@@ -35,6 +36,29 @@ export function useAdminAssignments() {
   const availableCurrentPage = ref(1)
   const itemsPerPage = 8
 
+  const clearAssignmentFeedback = () => {
+    successMessage.value = ''
+    assignErrorMessage.value = ''
+  }
+
+  const closeUnassignErrorModal = () => {
+    isUnassignErrorModalOpen.value = false
+    unassignErrorModalMessage.value = ''
+  }
+
+  const openUnassignErrorModal = (message) => {
+    unassignErrorModalMessage.value = message || 'Error unassigning patient.'
+    isUnassignErrorModalOpen.value = true
+  }
+
+  const sortByNameAndSurname = (a, b, nameKey = 'name', surnameKey = 'surname') => {
+    const nameComparison = (a[nameKey] ?? '').localeCompare(b[nameKey] ?? '')
+
+    return nameComparison !== 0
+      ? nameComparison
+      : (a[surnameKey] ?? '').localeCompare(b[surnameKey] ?? '')
+  }
+
   const mapAssignedPatient = (patient) => {
     return {
       ...patient,
@@ -53,7 +77,10 @@ export function useAdminAssignments() {
 
   const loadNurses = async () => {
     const data = await getNurses()
-    nurses.value = (data ?? []).filter(nurse => nurse.active)
+
+    nurses.value = (data ?? [])
+      .filter(nurse => nurse.active)
+      .sort((a, b) => sortByNameAndSurname(a, b))
 
     if (!selectedNurseId.value && nurses.value.length) {
       selectedNurseId.value = nurses.value[0].nurseId
@@ -67,20 +94,25 @@ export function useAdminAssignments() {
     }
 
     const data = await getAssignedPatientsByNurse(selectedNurseId.value)
-    assignedPatients.value = (data ?? []).map(mapAssignedPatient)
+
+    assignedPatients.value = (data ?? [])
+      .map(mapAssignedPatient)
+      .sort((a, b) => sortByNameAndSurname(a, b))
   }
 
   const loadAvailablePatients = async () => {
     const data = await getUnassignedPatients()
-    availablePatients.value = (data ?? []).map(mapAvailablePatient)
+
+    availablePatients.value = (data ?? [])
+      .map(mapAvailablePatient)
+      .sort((a, b) => sortByNameAndSurname(a, b, 'patientName', 'patientSurname'))
   }
 
   const loadAssignmentsData = async () => {
     loading.value = true
     errorMessage.value = ''
-    assignErrorMessage.value = ''
-    isUnassignErrorModalOpen.value = false
-    unassignErrorModalMessage.value = ''
+    clearAssignmentFeedback()
+    closeUnassignErrorModal()
 
     try {
       await loadNurses()
@@ -104,18 +136,9 @@ export function useAdminAssignments() {
     ])
   }
 
-  const closeUnassignErrorModal = () => {
-    isUnassignErrorModalOpen.value = false
-    unassignErrorModalMessage.value = ''
-  }
-
-  const openUnassignErrorModal = (message) => {
-    unassignErrorModalMessage.value = message || 'Error unassigning patient.'
-    isUnassignErrorModalOpen.value = true
-  }
-
   const assignPatient = async (patient) => {
-    assignErrorMessage.value = ''
+    clearAssignmentFeedback()
+    closeUnassignErrorModal()
 
     if (!selectedNurseId.value) {
       assignErrorMessage.value = 'Please select a nurse.'
@@ -139,6 +162,8 @@ export function useAdminAssignments() {
       availableCurrentPage.value = 1
 
       await refreshTables()
+
+      successMessage.value = 'Patient assigned successfully.'
     } catch (error) {
       assignErrorMessage.value = error.message || 'Error assigning patient.'
     } finally {
@@ -147,7 +172,7 @@ export function useAdminAssignments() {
   }
 
   const unassignPatient = async (patient) => {
-    assignErrorMessage.value = ''
+    clearAssignmentFeedback()
     closeUnassignErrorModal()
 
     if (!patient?.patientId) {
@@ -164,6 +189,8 @@ export function useAdminAssignments() {
       availableCurrentPage.value = 1
 
       await refreshTables()
+
+      successMessage.value = 'Patient unassigned successfully.'
     } catch (error) {
       const message = error.message || 'Error unassigning patient.'
       assignErrorMessage.value = message
@@ -274,6 +301,7 @@ export function useAdminAssignments() {
   return {
     loading,
     errorMessage,
+    successMessage,
     nurses,
     selectedNurseId,
     assignedPatients,
@@ -301,6 +329,7 @@ export function useAdminAssignments() {
     assignPatient,
     unassignPatient,
     closeUnassignErrorModal,
+    clearAssignmentFeedback,
     resetAssignedPage,
     resetAvailablePage,
     goToPreviousAssignedPage,

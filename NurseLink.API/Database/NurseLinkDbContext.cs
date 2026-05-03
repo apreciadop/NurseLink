@@ -9,6 +9,7 @@ namespace NurseLink.API.Database
             : base(options)
         {
         }
+
         public DbSet<Nurse> Nurses { get; set; }
         public DbSet<Patient> Patients { get; set; }
         public DbSet<Administrator> Administrators { get; set; }
@@ -60,8 +61,12 @@ namespace NurseLink.API.Database
                 .HasIndex(a => a.PatientId)
                 .IsUnique();
 
+            modelBuilder.Entity<Surgery>()
+                .HasIndex(s => s.PatientId)
+                .IsUnique();
+
             modelBuilder.Entity<Conversation>()
-                .HasIndex(c => new { c.PatientId, c.NurseId })
+                .HasIndex(c => c.PatientId)
                 .IsUnique();
 
             modelBuilder.Entity<Administrator>()
@@ -81,6 +86,18 @@ namespace NurseLink.API.Database
                 .WithMany()
                 .HasForeignKey(p => p.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Surgery>()
+                .HasOne(s => s.Patient)
+                .WithOne(p => p.Surgery)
+                .HasForeignKey<Surgery>(s => s.PatientId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Surgery>()
+                .HasOne(s => s.SurgeryType)
+                .WithMany(st => st.Surgeries)
+                .HasForeignKey(s => s.SurgeryTypeId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Report>()
                 .HasOne(r => r.Patient)

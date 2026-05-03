@@ -21,8 +21,10 @@ namespace NurseLink.API.Domain.Entities
         [ForeignKey(nameof(UserId))]
         public User User { get; set; } = null!;
 
-        public ICollection<Assignment> Assignments { get; set; } = new List<Assignment>();
-        public ICollection<Conversation> Conversations { get; set; } = new List<Conversation>();
-        public ICollection<Report> Reports { get; set; } = new List<Report>();
+        public ICollection<Assignment> Assignments { get; set; } = [];
+
+        public ICollection<Conversation> Conversations { get; set; } = [];
+
+        public ICollection<Report> Reports { get; set; } = [];
     }
 }

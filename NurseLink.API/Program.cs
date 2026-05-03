@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi;
 using NurseLink.API.Database;
+using NurseLink.API.Domain.Common;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -9,12 +11,36 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 
-// as we are developint, we are going to allow all the origins
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "NurseLink API",
+        Version = "v1"
+    });
+
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Description = "Enter only the JWT token, without Bearer.",
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT"
+    });
+
+    options.AddSecurityRequirement(document => new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecuritySchemeReference("Bearer", document),
+            new List<string>()
+        }
+    });
+});
+
+// as we are developing, we are going to allow all the origins
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", policy =>
+    options.AddPolicy(ConstantConfiguration.accessAllowed, policy =>
     {
         policy
             .AllowAnyOrigin()
@@ -24,11 +50,11 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddDbContext<NurseLinkDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString(ConstantConfiguration.defaultConnection)));
 
-var jwtKey = builder.Configuration["Jwt:Key"]!;
-var jwtIssuer = builder.Configuration["Jwt:Issuer"]!;
-var jwtAudience = builder.Configuration["Jwt:Audience"]!;
+var jwtKey = builder.Configuration[ConstantConfiguration.jwtKey]!;
+var jwtIssuer = builder.Configuration[ConstantConfiguration.jwtIssuer]!;
+var jwtAudience = builder.Configuration[ConstantConfiguration.jwtAudience]!;
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -54,13 +80,18 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint("/swagger/v1/swagger.json", "NurseLink API v1");
+        options.EnablePersistAuthorization();
+    });
 }
 
 app.UseStaticFiles();
 app.UseHttpsRedirection();
 
-app.UseCors("AllowAll");
+app.UseCors(ConstantConfiguration.accessAllowed);
 
 app.UseAuthentication();
 app.UseAuthorization();

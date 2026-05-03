@@ -133,7 +133,12 @@ function isTokenExpired(token) {
       .replace(/-/g, '+')
       .replace(/_/g, '/')
 
-    const decodedPayload = JSON.parse(atob(normalizedPayload))
+    const paddedPayload = normalizedPayload.padEnd(
+      normalizedPayload.length + (4 - normalizedPayload.length % 4) % 4,
+      '='
+    )
+
+    const decodedPayload = JSON.parse(atob(paddedPayload))
     const expiration = decodedPayload.exp
 
     if (!expiration) {

@@ -28,6 +28,7 @@ export function usePatientMessages() {
 
   let pollingId = null
   let isRefreshingChat = false
+  let lastLoadedConversationId = null
 
   const conversationId = computed(() => {
     const value = route.params.conversationId
@@ -130,6 +131,7 @@ export function usePatientMessages() {
       if (!silent) {
         errorMessage.value = error.message || 'Error loading conversation detail.'
       }
+
       console.error('Load patient conversation detail error:', error)
     } finally {
       if (!silent) {
@@ -175,6 +177,7 @@ export function usePatientMessages() {
       if (!silent) {
         errorMessage.value = error.message || 'Error loading conversation messages.'
       }
+
       console.error('Load patient conversation messages error:', error)
     } finally {
       if (!silent) {
@@ -194,12 +197,21 @@ export function usePatientMessages() {
     errorMessage.value = ''
 
     try {
-      await ensureConversation()
+      const activeConversationId = await ensureConversation()
+
+      if (lastLoadedConversationId === activeConversationId) {
+        return
+      }
+
+      lastLoadedConversationId = activeConversationId
 
       await Promise.all([
         loadConversationDetailData(),
         loadConversationMessagesData({ scrollToBottom: false })
       ])
+    } catch (error) {
+      errorMessage.value = error.message || 'Error loading messages.'
+      console.error('Load patient messages error:', error)
     } finally {
       loading.value = false
       await scrollMessagesToBottom()
@@ -249,7 +261,7 @@ export function usePatientMessages() {
         silent: true,
         scrollToBottom: false
       })
-    }, 3000)
+    }, 5000)
   }
 
   const stopPolling = () => {

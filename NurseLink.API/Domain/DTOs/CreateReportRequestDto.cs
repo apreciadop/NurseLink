@@ -4,22 +4,19 @@ namespace NurseLink.API.Domain.DTOs
 {
     public class CreateReportRequestDto
     {
-        [Required]
+        [Range(1, int.MaxValue, ErrorMessage = "PatientId must be greater than 0.")]
         public int PatientId { get; set; }
 
-        [Required]
-        [Range(0, 10)]
+        [Range(0, 10, ErrorMessage = "Pain level must be between 0 and 10.")]
         public int PainLevel { get; set; }
 
-        [Required]
         public bool HasFever { get; set; }
 
-        [Required]
         public bool HasBleeding { get; set; }
 
-        [Required]
         public bool HasSwelling { get; set; }
 
+        [MaxLength(2000)]
         public string? Observations { get; set; }
     }
 }

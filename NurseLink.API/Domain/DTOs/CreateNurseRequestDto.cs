@@ -5,10 +5,12 @@ namespace NurseLink.API.Domain.DTOs
     public class CreateNurseRequestDto
     {
         [Required]
+        [MinLength(2)]
         [MaxLength(100)]
         public string Name { get; set; } = string.Empty;
 
         [Required]
+        [MinLength(2)]
         [MaxLength(150)]
         public string Surname { get; set; } = string.Empty;
 
@@ -18,14 +20,11 @@ namespace NurseLink.API.Domain.DTOs
         public string Email { get; set; } = string.Empty;
 
         [Required]
-        [MaxLength(255)]
-        [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).+$", ErrorMessage = "Password must contain at least one uppercase letter, one lowercase letter, one number and one special character.")]
         public string Password { get; set; } = string.Empty;
 
         [Required]
         [DataType(DataType.Date)]
         public DateTime? Birthdate { get; set; }
-
 
         [MaxLength(30)]
         public string? Phone { get; set; }

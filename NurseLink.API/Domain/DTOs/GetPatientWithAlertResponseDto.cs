@@ -15,5 +15,6 @@
         public bool ReportFever { get; set; }
         public bool ReportBleeding { get; set; }
         public bool ReportSwelling { get; set; }
+        public int AlertCount { get; set; }
     }
 }

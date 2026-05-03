@@ -5,7 +5,8 @@ namespace NurseLink.API.Domain.DTOs
     public class ForgotPasswordRequestDto
     {
         [Required]
-        [EmailAddress]
+        [EmailAddress(ErrorMessage = "Email format is invalid.")]
+        [MaxLength(255)]
         public string Email { get; set; } = string.Empty;
 
         [Required]

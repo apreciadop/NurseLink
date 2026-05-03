@@ -14,6 +14,10 @@
   color: var(--color-error);
 }
 
+.patients-message-success {
+  color: var(--color-success);
+}
+
 .patients-main {
   display: flex;
   flex-direction: column;
@@ -87,57 +91,17 @@
   max-width: 370px;
 }
 
-.patients-search-input {
-  width: 100%;
-  min-height: 2.7rem;
-  padding: 0 0.95rem;
-  border: 1px solid var(--color-border-soft);
-  border-radius: 0.6rem;
-  background: var(--color-white);
-  color: var(--color-text-main);
-  font: inherit;
-  outline: none;
-  box-sizing: border-box;
-  transition: border-color 0.18s ease, box-shadow 0.18s ease;
-}
-
-.patients-search-input:focus {
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px var(--color-primary-light-ring);
-}
-
-.patients-addbutton {
-  min-height: 2.55rem;
-  padding: 0.65rem 1.15rem;
-  border: none;
-  border-radius: 0.7rem;
-  background: var(--color-primary);
-  color: var(--color-white);
-  font: inherit;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.patients-addbutton:hover {
-  opacity: 0.96;
-}
-
 .patients-filtersrow {
   display: flex;
   align-items: center;
-  gap: 1.4rem;
+  gap: 6rem;
   padding: 0.9rem 1.25rem 1rem;
   border-bottom: 1px solid var(--color-border-soft);
+  flex-wrap: wrap;
 }
 
-.patients-filteroption {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  color: var(--color-text-main);
-  font-size: 0.98rem;
-  font-weight: 600;
-  cursor: pointer;
+.patients-statusfilter {
+  margin-left: 3rem;
 }
 
 .patients-tablebody {
@@ -247,106 +211,17 @@
   object-fit: cover;
 }
 
-.patients-activebadge,
-.patients-statusbadge {
+.patients-actions {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 104px;
-  padding: 0.42rem 0.9rem;
-  border-radius: 999px;
-  font-size: 0.82rem;
-  font-weight: 700;
-}
-
-.patients-activebadge-active {
-  background: var(--color-status-active-bg);
-  color: var(--color-status-active-text);
-}
-
-.patients-activebadge-inactive {
-  background: var(--color-status-inactive-bg);
-  color: var(--color-status-inactive-text);
-}
-
-.patients-statusbadge-stable {
-  background: var(--color-status-stable-bg);
-  color: var(--color-status-stable-text);
-}
-
-.patients-statusbadge-warning {
-  background: var(--color-status-warning-bg);
-  color: var(--color-status-warning-text);
-}
-
-.patients-statusbadge-alert {
-  background: var(--color-status-alert-bg);
-  color: var(--color-status-alert-text);
-}
-
-.patients-actionbutton {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 2.1rem;
-  height: 2.1rem;
-  border: none;
-  border-radius: 0.5rem;
-  background: transparent;
-  cursor: pointer;
-  transition: transform 0.18s ease;
-}
-
-.patients-actionbutton:hover {
-  transform: scale(1.12);
-}
-
-.patients-actionicon {
-  width: 18px;
-  height: 18px;
-  object-fit: contain;
-}
-
-.patients-actions .patients-actionbutton:last-child .patients-actionicon {
-  width: 16px;
-  height: 16px;
+  gap: 0.35rem;
 }
 
 .patients-empty {
   text-align: center;
   color: var(--color-text-placeholder);
   padding: 2rem 1rem;
-}
-
-.patients-pagination {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.85rem;
-  padding: 0 1.25rem 1.15rem;
-}
-
-.patients-pagination-button {
-  width: 2.2rem;
-  height: 2.2rem;
-  border: 1px solid var(--color-border-soft);
-  border-radius: 0.65rem;
-  background: var(--color-card-bg);
-  color: var(--color-text-main);
-  font: inherit;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.patients-pagination-button:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-}
-
-.patients-pagination-text {
-  color: var(--color-text-main);
-  font-size: 0.95rem;
-  font-weight: 600;
 }
 
 .patients-modal-overlay {
@@ -517,39 +392,6 @@
   border-top: 1px solid var(--color-border-soft);
 }
 
-.patients-modalbutton {
-  min-width: 96px;
-  padding: 10px 14px;
-  border-radius: 0.75rem;
-  font: inherit;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.patients-modalbutton-secondary {
-  border: 1px solid var(--color-border-soft);
-  background: var(--color-card-bg);
-  color: var(--color-text-main);
-}
-
-.patients-modalbutton-primary {
-  border: 1px solid var(--color-primary);
-  background: var(--color-primary);
-  color: var(--color-white);
-}
-
-.patients-actions {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.35rem;
-}
-
-.patients-actionbutton:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
 .patients-assign-info {
   display: flex;
   flex-direction: column;
@@ -664,27 +506,6 @@
   border-top: 1px solid var(--color-border-soft);
 }
 
-.dashboard-modalbutton {
-  min-width: 96px;
-  padding: 10px 14px;
-  border-radius: 0.75rem;
-  font: inherit;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.dashboard-modalbutton--secondary {
-  border: 1px solid var(--color-border-soft);
-  background: var(--color-card-bg);
-  color: var(--color-text-main);
-}
-
-.dashboard-modalbutton--primary {
-  border: 1px solid var(--color-primary);
-  background: var(--color-primary);
-  color: var(--color-white);
-}
-
 @media (max-width: 1100px) {
   .patients-kpis {
     grid-template-columns: 1fr;
@@ -700,8 +521,11 @@
   }
 
   .patients-filtersrow {
-    flex-wrap: wrap;
-    gap: 1rem;
+    gap: 2rem;
+  }
+
+  .patients-statusfilter {
+    margin-left: 0;
   }
 }
 
@@ -725,13 +549,6 @@
   .patients-table thead th,
   .patients-table tbody td {
     padding: 0.85rem 0.9rem;
-  }
-
-  .patients-activebadge,
-  .patients-statusbadge {
-    min-width: 90px;
-    font-size: 0.78rem;
-    padding: 0.38rem 0.72rem;
   }
 
   .patients-modal {
@@ -764,7 +581,7 @@
     flex-direction: column;
   }
 
-  .patients-modalbutton {
+  .patients-modalfooter .app-button {
     width: 100%;
   }
 
@@ -776,12 +593,7 @@
     flex-direction: column;
   }
 
-  .dashboard-modalbutton {
+  .dashboard-modalfooter .app-button {
     width: 100%;
-  }
-
-  .patients-pagination {
-    flex-direction: column;
-    gap: 0.6rem;
   }
 }

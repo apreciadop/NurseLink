@@ -1,4 +1,45 @@
-<script src="../scripts/adminDashboardView.js"></script>
+<script setup>
+import { onMounted } from 'vue'
+import AppFeedbackModal from '../components/AppFeedbackModal.vue'
+import { useAdminDashboard } from '../composables/useAdminDashboard'
+
+const {
+  totalPatients,
+  totalNurses,
+  totalAlerts,
+  totalUnassigned,
+  patientsWithAlerts,
+  unassignedPatients,
+  paginatedPatientsWithAlerts,
+  paginatedUnassignedPatients,
+  alertsCurrentPage,
+  unassignedCurrentPage,
+  patientsWithAlertsTotalPages,
+  unassignedPatientsTotalPages,
+  nurses,
+  loading,
+  errorMessage,
+  successMessage,
+  isAssignModalOpen,
+  selectedPatient,
+  selectedNurseId,
+  assignErrorMessage,
+  assignLoading,
+  loadDashboardData,
+  goToPreviousAlertsPage,
+  goToNextAlertsPage,
+  goToPreviousUnassignedPage,
+  goToNextUnassignedPage,
+  openAssignModal,
+  closeAssignModal,
+  submitAssignment,
+  clearDashboardFeedback
+} = useAdminDashboard()
+
+onMounted(() => {
+  loadDashboardData()
+})
+</script>
 
 <template>
   <section class="admin-dashboard">
@@ -35,37 +76,48 @@
             <h2>Patients with Alerts</h2>
           </header>
 
-          <section class="dashboard-panelbody">
+          <section class="dashboard-panelbody dashboard-panelbody-large">
             <template v-if="patientsWithAlerts.length">
               <div class="dashboard-table-wrapper">
                 <table class="dashboard-table dashboard-table-alerts">
                   <thead>
                     <tr>
-                      <th title="Patient">Patient</th>
-                      <th title="Nurse">Nurse</th>
-                      <th title="Date">Date</th>
-                      <th title="Status">Status</th>
-                      <th title="Pain">Pain</th>
-                      <th title="Fever">Fever</th>
-                      <th title="Bleeding">Bleeding</th>
-                      <th title="Swelling">Swelling</th>
+                      <th>Patient</th>
+                      <th>Nurse</th>
+                      <th>Date</th>
+                      <th>Status</th>
+                      <th>Pain</th>
+                      <th>Fever</th>
+                      <th>Bleeding</th>
+                      <th>Swelling</th>
                     </tr>
                   </thead>
 
                   <tbody>
-                    <tr v-for="patient in patientsWithAlerts" :key="patient.patientId">
-                      <td :title="`${patient.patientName} ${patient.patientSurname}`">{{ patient.patientName }} {{ patient.patientSurname }}</td>
-                      <td :title="`${patient.nurseName} ${patient.nurseSurname}`">{{ patient.nurseName }} {{ patient.nurseSurname }}</td>
-                      <td :title="patient.reportDate || '-'">{{ patient.reportDate || '-' }}</td>
-                      <td :title="patient.reportStatus || '-'">{{ patient.reportStatus || '-' }}</td>
-                      <td :title="String(patient.reportPain ?? '-')">{{ patient.reportPain ?? '-' }}</td>
-                      <td :title="patient.reportFever ? 'Yes' : 'No'">{{ patient.reportFever ? 'Yes' : 'No' }}</td>
-                      <td :title="patient.reportBleeding ? 'Yes' : 'No'">{{ patient.reportBleeding ? 'Yes' : 'No' }}</td>
-                      <td :title="patient.reportSwelling ? 'Yes' : 'No'">{{ patient.reportSwelling ? 'Yes' : 'No' }}</td>
+                    <tr v-for="patient in paginatedPatientsWithAlerts" :key="patient.patientId">
+                      <td class="dashboard-name-cell" :title="`${patient.patientName} ${patient.patientSurname}`">{{ patient.patientName }} {{ patient.patientSurname }}</td>
+                      <td class="dashboard-name-cell" :title="`${patient.nurseName} ${patient.nurseSurname}`">{{ patient.nurseName }} {{ patient.nurseSurname }}</td>
+                      <td class="dashboard-date-cell">{{ patient.reportDate || '-' }}</td>
+
+                      <td class="dashboard-center-cell">
+                        <span v-if="patient.reportStatus" :class="['app-badge', 'dashboard-status-badge', patient.reportStatus === 'Stable' ? 'app-badge-stable' : patient.reportStatus === 'Warning' ? 'app-badge-warning' : 'app-badge-alert']">{{ patient.reportStatus }}</span>
+                        <span v-else>-</span>
+                      </td>
+
+                      <td class="dashboard-center-cell">{{ patient.reportPain ?? '-' }}</td>
+                      <td class="dashboard-center-cell">{{ patient.reportFever ? 'Yes' : 'No' }}</td>
+                      <td class="dashboard-center-cell">{{ patient.reportBleeding ? 'Yes' : 'No' }}</td>
+                      <td class="dashboard-center-cell">{{ patient.reportSwelling ? 'Yes' : 'No' }}</td>
                     </tr>
                   </tbody>
                 </table>
               </div>
+
+              <footer class="app-pagination dashboard-pagination">
+                <button type="button" class="app-pagination-button" :disabled="alertsCurrentPage === 1" @click="goToPreviousAlertsPage">&lt;</button>
+                <span class="app-pagination-text">Page {{ alertsCurrentPage }} of {{ patientsWithAlertsTotalPages }}</span>
+                <button type="button" class="app-pagination-button" :disabled="alertsCurrentPage === patientsWithAlertsTotalPages" @click="goToNextAlertsPage">&gt;</button>
+              </footer>
             </template>
 
             <p v-else>No patients with alerts.</p>
@@ -77,34 +129,40 @@
             <h2>Unassigned Patients</h2>
           </header>
 
-          <section class="dashboard-panelbody">
+          <section class="dashboard-panelbody dashboard-panelbody-large">
             <template v-if="unassignedPatients.length">
               <div class="dashboard-table-wrapper">
                 <table class="dashboard-table dashboard-table-unassigned">
                   <thead>
                     <tr>
-                      <th title="Patient">Patient</th>
-                      <th title="Surgery">Surgery</th>
-                      <th title="Date">Date</th>
-                      <th title="Action">Action</th>
+                      <th>Patient</th>
+                      <th>Surgery</th>
+                      <th>Date</th>
+                      <th>Action</th>
                     </tr>
                   </thead>
 
                   <tbody>
-                    <tr v-for="patient in unassignedPatients" :key="patient.patientId">
-                      <td :title="`${patient.patientName} ${patient.patientSurname}`">{{ patient.patientName }} {{ patient.patientSurname }}</td>
+                    <tr v-for="patient in paginatedUnassignedPatients" :key="patient.patientId">
+                      <td class="dashboard-name-cell" :title="`${patient.patientName} ${patient.patientSurname}`">{{ patient.patientName }} {{ patient.patientSurname }}</td>
                       <td :title="patient.surgeryTypeName || '-'">{{ patient.surgeryTypeName || '-' }}</td>
-                      <td :title="patient.surgeryDate || '-'">{{ patient.surgeryDate || '-' }}</td>
-                      <td>
-                        <button type="button" class="dashboard-action-button dashboard-action-button--icon" :aria-label="`Assign patient ${patient.patientName} ${patient.patientSurname}`"
-                          title="Assign patient" @click="openAssignModal(patient)">
-                          <img src="/icons/assignmentBlack.png" alt="Assign patient to a Nurse" class="dashboard-action-icon-image"/>
+                      <td>{{ patient.surgeryDate || '-' }}</td>
+
+                      <td class="dashboard-center-cell">
+                        <button type="button" class="app-action-button" :aria-label="`Assign patient ${patient.patientName} ${patient.patientSurname}`" title="Assign patient" @click="openAssignModal(patient)">
+                          <img src="/icons/assignmentBlack.png" alt="Assign patient to a Nurse" class="app-action-icon" />
                         </button>
                       </td>
                     </tr>
                   </tbody>
                 </table>
               </div>
+
+              <footer class="app-pagination dashboard-pagination">
+                <button type="button" class="app-pagination-button" :disabled="unassignedCurrentPage === 1" @click="goToPreviousUnassignedPage">&lt;</button>
+                <span class="app-pagination-text">Page {{ unassignedCurrentPage }} of {{ unassignedPatientsTotalPages }}</span>
+                <button type="button" class="app-pagination-button" :disabled="unassignedCurrentPage === unassignedPatientsTotalPages" @click="goToNextUnassignedPage">&gt;</button>
+              </footer>
             </template>
 
             <p v-else>No unassigned patients.</p>
@@ -117,17 +175,14 @@
       <div class="dashboard-modal" @click.stop>
         <header class="dashboard-modalheader">
           <h2>Assign Patient</h2>
-
-          <button type="button" class="dashboard-modalclose" aria-label="Close assignment modal" @click="closeAssignModal">x</button>
+          <button type="button" class="dashboard-modalclose" aria-label="Close assignment modal" @click="closeAssignModal">×</button>
         </header>
 
         <section v-if="selectedPatient" class="dashboard-modalbody">
           <div class="dashboard-modalpatient-info">
-            <p><strong>Patient:</strong>{{ selectedPatient.patientName }} {{ selectedPatient.patientSurname }}</p>
-
-            <p><strong>Surgery:</strong>{{ selectedPatient.surgeryTypeName || '-' }}</p>
-
-            <p><strong>Date:</strong>{{ selectedPatient.surgeryDate || '-' }}</p>
+            <p><strong>Patient:</strong> {{ selectedPatient.patientName }} {{ selectedPatient.patientSurname }}</p>
+            <p><strong>Surgery:</strong> {{ selectedPatient.surgeryTypeName || '-' }}</p>
+            <p><strong>Date:</strong> {{ selectedPatient.surgeryDate || '-' }}</p>
           </div>
 
           <div class="dashboard-modalfield">
@@ -135,21 +190,19 @@
 
             <select id="nurseSelect" v-model="selectedNurseId" class="dashboard-modalselect">
               <option value="">Select a nurse</option>
-
               <option v-for="nurse in nurses" :key="nurse.nurseId" :value="nurse.nurseId">{{ nurse.name }} {{ nurse.surname }}</option>
             </select>
           </div>
-
-          <p v-if="assignErrorMessage" class="dashboard-modalerror">{{ assignErrorMessage }}</p>
         </section>
 
         <footer class="dashboard-modalfooter">
-          <button type="button" class="dashboard-modalbutton dashboard-modalbutton--secondary" @click="closeAssignModal">Cancel</button>
-
-          <button type="button" class="dashboard-modalbutton dashboard-modalbutton--primary" :disabled="assignLoading" @click="submitAssignment">{{ assignLoading ? 'Assigning...' : 'Assign' }}</button>
+          <button type="button" class="app-button app-button-secondary" @click="closeAssignModal">Cancel</button>
+          <button type="button" class="app-button app-button-primary" :disabled="assignLoading" @click="submitAssignment">{{ assignLoading ? 'Assigning...' : 'Assign' }}</button>
         </footer>
       </div>
     </div>
+
+    <AppFeedbackModal :visible="!!(successMessage || assignErrorMessage)" :message="assignErrorMessage || successMessage" :type="assignErrorMessage ? 'error' : 'success'" @close="clearDashboardFeedback" />
   </section>
 </template>
 

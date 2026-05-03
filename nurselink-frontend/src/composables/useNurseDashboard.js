@@ -31,6 +31,7 @@ export function useNurseDashboard() {
 
   const loading = ref(false)
   const errorMessage = ref('')
+  const successMessage = ref('')
 
   const reportsLoading = ref(false)
   const reportsErrorMessage = ref('')
@@ -52,6 +53,11 @@ export function useNurseDashboard() {
     }
 
     return null
+  }
+
+  const clearNurseDashboardFeedback = () => {
+    successMessage.value = ''
+    reportSaveErrorMessage.value = ''
   }
 
   const calculateStatusFromAlerts = (alertCount) => {
@@ -246,6 +252,7 @@ export function useNurseDashboard() {
 
   const loadAssignedPatients = async () => {
     errorMessage.value = ''
+    successMessage.value = ''
     loading.value = true
 
     try {
@@ -272,6 +279,7 @@ export function useNurseDashboard() {
       return
     }
 
+    successMessage.value = ''
     isReportModalOpen.value = true
     reportDetailLoading.value = true
     reportDetailErrorMessage.value = ''
@@ -303,6 +311,7 @@ export function useNurseDashboard() {
     }
 
     reportSaveErrorMessage.value = ''
+    successMessage.value = ''
     reportSaveLoading.value = true
 
     try {
@@ -315,6 +324,9 @@ export function useNurseDashboard() {
       if (selectedPatient.value?.patientId) {
         await loadPatientReports(selectedPatient.value.patientId)
       }
+
+      successMessage.value = 'Nurse observations saved successfully.'
+      closeViewReportModal()
     } catch (error) {
       reportSaveErrorMessage.value = error.message || 'Error saving nurse observations.'
     } finally {
@@ -372,6 +384,7 @@ export function useNurseDashboard() {
     reportsCurrentPage,
     loading,
     errorMessage,
+    successMessage,
     reportsLoading,
     reportsErrorMessage,
     filteredPatients,
@@ -393,6 +406,7 @@ export function useNurseDashboard() {
     openViewReportModal,
     closeViewReportModal,
     saveNurseObservations,
+    clearNurseDashboardFeedback,
     resetPatientsPage,
     goToPreviousPage,
     goToNextPage,

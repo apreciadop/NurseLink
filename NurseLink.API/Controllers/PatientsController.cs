@@ -2,50 +2,49 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using NurseLink.API.Database;
+using NurseLink.API.Domain.Common;
 using NurseLink.API.Domain.DTOs;
 using NurseLink.API.Domain.Entities;
 using NurseLink.API.Domain.Enums;
-using System.Text.RegularExpressions;
 
 namespace NurseLink.API.Controllers
 {
     [Authorize]
     [ApiController]
     [Route("api/[controller]")]
-    public class PatientsController : ControllerBase
+    public class PatientsController(NurseLinkDbContext context, ILogger<PatientsController> logger) : ControllerBase
     {
-        private readonly NurseLinkDbContext _context;
-        private readonly ILogger<PatientsController> _logger;
-
-        public PatientsController(NurseLinkDbContext context, ILogger<PatientsController> logger)
-        {
-            _context = context;
-            _logger = logger;
-        }
+        private readonly NurseLinkDbContext _context = context;
+        private readonly ILogger<PatientsController> _logger = logger;
 
         [HttpPost("create")]
-        public async Task<ActionResult<CreatePatientResponseDto>> CreatePatient([FromBody] CreatePatientRequestDto request)
+        public async Task<ActionResult<CreatePatientResponseDto>> CreatePatient([FromBody] CreatePatientRequestDto request, CancellationToken cancellation)
         {
             if (request == null)
                 return BadRequest("Request body required.");
 
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            if (!request.SurgeryDate.HasValue)
+                return BadRequest("Surgery date is required.");
 
-            if (string.IsNullOrWhiteSpace(request.Name) || string.IsNullOrWhiteSpace(request.Surname) || string.IsNullOrWhiteSpace(request.Email) ||
-                string.IsNullOrWhiteSpace(request.Password) || !request.Birthdate.HasValue || !request.SurgeryTypeId.HasValue || !request.SurgeryDate.HasValue)
-                return BadRequest("Name, surname, birthdate, email, password, surgery type and surgery date are required.");
+            var surgeryDate = request.SurgeryDate.Value;
 
-            var normalizedEmail = request.Email.Trim().ToLower();
+            var passwordError = PasswordValidator.Validate(request.Password);
+
+            if (passwordError != null)
+                return BadRequest(passwordError);
+
+            var email = request.Email.Trim();
 
             var emailExists = await _context.Users
-                .AnyAsync(u => u.UserEmail.ToLower() == normalizedEmail);
+                .AsNoTracking()
+                .AnyAsync(u => u.UserEmail == email, cancellation);
 
             if (emailExists)
                 return BadRequest("Email already exists.");
 
             var surgeryTypeExists = await _context.SurgeryTypes
-                .AnyAsync(st => st.SurgeryTypeId == request.SurgeryTypeId.Value);
+                .AsNoTracking()
+                .AnyAsync(st => st.SurgeryTypeId == request.SurgeryTypeId, cancellation);
 
             if (!surgeryTypeExists)
                 return BadRequest("Selected surgery type does not exist.");
@@ -57,7 +56,7 @@ namespace NurseLink.API.Controllers
                     UserRole = UserRole.Patient,
                     UserName = request.Name.Trim(),
                     UserSurname = request.Surname.Trim(),
-                    UserEmail = normalizedEmail,
+                    UserEmail = email,
                     UserPassword = BCrypt.Net.BCrypt.HashPassword(request.Password),
                     UserActive = true,
                     UserBirthdate = request.Birthdate,
@@ -76,18 +75,18 @@ namespace NurseLink.API.Controllers
                 };
 
                 _context.Patients.Add(patient);
-                await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync(cancellation);
 
                 var surgery = new Surgery
                 {
                     PatientId = patient.PatientId,
-                    SurgeryTypeId = request.SurgeryTypeId.Value,
-                    SurgeryDate = request.SurgeryDate.Value,
+                    SurgeryTypeId = request.SurgeryTypeId,
+                    SurgeryDate = surgeryDate,
                     CreatedAt = DateTime.UtcNow
                 };
 
                 _context.Surgeries.Add(surgery);
-                await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync(cancellation);
 
                 return Ok(new CreatePatientResponseDto
                 {
@@ -98,7 +97,7 @@ namespace NurseLink.API.Controllers
                     Surname = patient.User.UserSurname,
                     Email = patient.User.UserEmail,
                     Role = patient.User.UserRole,
-                    RoleName = ((UserRole)patient.User.UserRole).ToString(),
+                    RoleName = patient.User.UserRole.ToString(),
                     Active = patient.User.UserActive,
                     CreatedAt = patient.User.CreatedAt,
                     Birthdate = patient.User.UserBirthdate,
@@ -114,30 +113,15 @@ namespace NurseLink.API.Controllers
         }
 
         [HttpPut("update/{patientId}")]
-        public async Task<ActionResult<UpdatePatientResponseDto>> UpdatePatient(int patientId, [FromBody] UpdatePatientRequestDto request)
+        public async Task<ActionResult<UpdatePatientResponseDto>> UpdatePatient(int patientId, [FromBody] UpdatePatientRequestDto request, CancellationToken cancellation)
         {
             if (request == null)
                 return BadRequest("Request body required.");
 
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            if (!request.SurgeryDate.HasValue)
+                return BadRequest("Surgery date is required.");
 
-            if (string.IsNullOrWhiteSpace(request.Name) || string.IsNullOrWhiteSpace(request.Surname) || string.IsNullOrWhiteSpace(request.Email) ||
-                !request.Birthdate.HasValue || !request.SurgeryTypeId.HasValue || !request.SurgeryDate.HasValue)
-                return BadRequest("Name, surname, birthdate, email, surgery type and surgery date are required.");
-
-            if (!string.IsNullOrWhiteSpace(request.Password))
-            {
-                if (request.Password.Length < 6 || request.Password.Length > 255)
-                    return BadRequest("Password must be between 6 and 255 characters.");
-
-                var passwordRegex = new Regex(
-                    @"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).+$"
-                );
-
-                if (!passwordRegex.IsMatch(request.Password))
-                    return BadRequest("Password must contain at least one uppercase letter, one lowercase letter, one number and one special character.");
-            }
+            var surgeryDate = request.SurgeryDate.Value;
 
             try
             {
@@ -145,21 +129,22 @@ namespace NurseLink.API.Controllers
                     .Include(p => p.User)
                     .Include(p => p.Surgery)
                     .Include(p => p.Assignment)
-                    .FirstOrDefaultAsync(p => p.PatientId == patientId);
+                    .FirstOrDefaultAsync(p => p.PatientId == patientId, cancellation);
 
                 if (patient == null)
                     return NotFound("Patient not found.");
 
-                var normalizedEmail = request.Email.Trim().ToLower();
+                var email = request.Email.Trim();
 
                 var emailExists = await _context.Users
-                    .AnyAsync(u => u.UserId != patient.UserId && u.UserEmail.ToLower() == normalizedEmail);
+                    .AnyAsync(u => u.UserId != patient.UserId && u.UserEmail == email, cancellation);
 
                 if (emailExists)
                     return BadRequest("Email already exists.");
 
                 var surgeryTypeExists = await _context.SurgeryTypes
-                    .AnyAsync(st => st.SurgeryTypeId == request.SurgeryTypeId.Value);
+                    .AsNoTracking()
+                    .AnyAsync(st => st.SurgeryTypeId == request.SurgeryTypeId, cancellation);
 
                 if (!surgeryTypeExists)
                     return BadRequest("Selected surgery type does not exist.");
@@ -167,16 +152,23 @@ namespace NurseLink.API.Controllers
                 if (!request.Active && patient.Assignment != null)
                     return BadRequest("This patient cannot be deactivated because there is still a nurse assigned.");
 
+                if (!string.IsNullOrWhiteSpace(request.Password))
+                {
+                    var passwordError = PasswordValidator.Validate(request.Password);
+
+                    if (passwordError != null)
+                        return BadRequest(passwordError);
+
+                    patient.User.UserPassword = BCrypt.Net.BCrypt.HashPassword(request.Password);
+                }
+
                 patient.User.UserName = request.Name.Trim();
                 patient.User.UserSurname = request.Surname.Trim();
-                patient.User.UserEmail = normalizedEmail;
+                patient.User.UserEmail = email;
                 patient.User.UserBirthdate = request.Birthdate;
                 patient.User.UserPhone = string.IsNullOrWhiteSpace(request.Phone) ? null : request.Phone.Trim();
                 patient.User.UserPhoto = request.Photo;
                 patient.User.UserActive = request.Active;
-
-                if (!string.IsNullOrWhiteSpace(request.Password))
-                    patient.User.UserPassword = BCrypt.Net.BCrypt.HashPassword(request.Password);
 
                 patient.PatientObservations = string.IsNullOrWhiteSpace(request.PatientObservations)
                     ? null
@@ -184,21 +176,24 @@ namespace NurseLink.API.Controllers
 
                 if (patient.Surgery == null)
                 {
-                    patient.Surgery = new Surgery
+                    var surgery = new Surgery
                     {
                         PatientId = patient.PatientId,
-                        SurgeryTypeId = request.SurgeryTypeId.Value,
-                        SurgeryDate = request.SurgeryDate.Value,
+                        SurgeryTypeId = request.SurgeryTypeId,
+                        SurgeryDate = surgeryDate,
                         CreatedAt = DateTime.UtcNow
                     };
+
+                    _context.Surgeries.Add(surgery);
+                    patient.Surgery = surgery;
                 }
                 else
                 {
-                    patient.Surgery.SurgeryTypeId = request.SurgeryTypeId.Value;
-                    patient.Surgery.SurgeryDate = request.SurgeryDate.Value;
+                    patient.Surgery.SurgeryTypeId = request.SurgeryTypeId;
+                    patient.Surgery.SurgeryDate = surgeryDate;
                 }
 
-                await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync(cancellation);
 
                 return Ok(new UpdatePatientResponseDto
                 {
@@ -225,12 +220,12 @@ namespace NurseLink.API.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll(CancellationToken cancellation)
         {
             try
             {
                 var patients = await _context.Patients
-                    .Include(p => p.User)
+                    .AsNoTracking()
                     .Select(p => new
                     {
                         patientId = p.PatientId,
@@ -239,14 +234,16 @@ namespace NurseLink.API.Controllers
                         surname = p.User.UserSurname,
                         email = p.User.UserEmail,
                         role = p.User.UserRole,
-                        roleName = ((UserRole)p.User.UserRole).ToString(),
+                        roleName = p.User.UserRole.ToString(),
                         active = p.User.UserActive,
                         createdAt = p.User.CreatedAt,
                         birthdate = p.User.UserBirthdate,
                         photo = p.User.UserPhoto,
                         patientObservations = p.PatientObservations
                     })
-                    .ToListAsync();
+                    .OrderBy(p => p.name)
+                    .ThenBy(p => p.surname)
+                    .ToArrayAsync(cancellation);
 
                 return Ok(patients);
             }
@@ -258,19 +255,19 @@ namespace NurseLink.API.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<GetPatientByIdResponseDto>> GetById(int id)
+        public async Task<ActionResult<GetPatientByIdResponseDto>> GetById(int id, CancellationToken cancellation)
         {
             try
             {
                 var patient = await _context.Patients
+                    .AsNoTracking()
                     .Include(p => p.User)
                     .Include(p => p.Surgery)
                         .ThenInclude(s => s.SurgeryType)
-                    .Include(p => p.Assignment)
-                        .ThenInclude(a => a.Nurse)
-                            .ThenInclude(n => n.User)
+                    .Include(p => p.Assignment!.Nurse)
+                        .ThenInclude(n => n.User)
                     .Include(p => p.Reports)
-                    .FirstOrDefaultAsync(p => p.PatientId == id);
+                    .FirstOrDefaultAsync(p => p.PatientId == id, cancellation);
 
                 if (patient == null)
                     return NotFound("Patient not found.");
@@ -282,6 +279,8 @@ namespace NurseLink.API.Controllers
 
                 var alertCount = latestReport?.ReportAlerts ?? 0;
                 var status = GetPatientStatus(alertCount);
+
+                var assignedNurse = patient.Assignment?.Nurse;
 
                 return Ok(new GetPatientByIdResponseDto
                 {
@@ -298,17 +297,14 @@ namespace NurseLink.API.Controllers
                     SurgeryTypeId = patient.Surgery.SurgeryTypeId,
                     SurgeryName = patient.Surgery.SurgeryType.SurgeryTypeName,
                     SurgeryDate = patient.Surgery.SurgeryDate,
-                    AssignedNurseId = patient.Assignment != null
-                        ? patient.Assignment.NurseId
+
+                    AssignedNurseId = assignedNurse?.NurseId,
+
+                    AssignedNurseName = assignedNurse != null
+                        ? (assignedNurse.User.UserName + " " + assignedNurse.User.UserSurname).Trim()
                         : null,
 
-                    AssignedNurseName = patient.Assignment != null
-                        ? (patient.Assignment.Nurse.User.UserName + " " + patient.Assignment.Nurse.User.UserSurname).Trim()
-                        : null,
-
-                    AssignedNursePhoto = patient.Assignment != null
-                        ? patient.Assignment.Nurse.User.UserPhoto
-                        : null,
+                    AssignedNursePhoto = assignedNurse?.User.UserPhoto,
 
                     AlertCount = alertCount,
                     Status = status
@@ -322,19 +318,19 @@ namespace NurseLink.API.Controllers
         }
 
         [HttpGet("patientsDetailed")]
-        public async Task<ActionResult<List<GetPatientsDetailedResponseDto>>> GetDetailed()
+        public async Task<ActionResult<GetPatientsDetailedResponseDto[]>> GetDetailed(CancellationToken cancellation)
         {
             try
             {
                 var patients = await _context.Patients
+                    .AsNoTracking()
                     .Include(p => p.User)
                     .Include(p => p.Surgery)
                         .ThenInclude(s => s.SurgeryType)
                     .Include(p => p.Reports)
-                    .Include(p => p.Assignment)
-                        .ThenInclude(a => a.Nurse)
-                            .ThenInclude(n => n.User)
-                    .ToListAsync();
+                    .Include(p => p.Assignment!.Nurse)
+                        .ThenInclude(n => n.User)
+                    .ToArrayAsync(cancellation);
 
                 var result = patients
                     .Select(p =>
@@ -369,9 +365,9 @@ namespace NurseLink.API.Controllers
                                 : null
                         };
                     })
-                    .OrderBy(p => p.Surname)
-                    .ThenBy(p => p.Name)
-                    .ToList();
+                    .OrderBy(p => p.Name)
+                    .ThenBy(p => p.Surname)
+                    .ToArray();
 
                 return Ok(result);
             }

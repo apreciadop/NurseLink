@@ -73,21 +73,9 @@ input:focus {
   box-shadow: 0 0 0 3px var(--color-primary-light-ring);
 }
 
-.form button {
+.login-submit-button {
   width: 100%;
-  padding: 11px;
-  border: none;
-  border-radius: var(--radius-input);
-  background: var(--color-primary);
-  color: var(--color-white);
-  font-weight: 600;
-  font-size: 0.95rem;
-  cursor: pointer;
-}
-
-.form button:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
+  min-height: 2.7rem;
 }
 
 .error {
@@ -184,34 +172,6 @@ input:focus {
   margin-top: 12px;
 }
 
-.forgot-password-cancel,
-.forgot-password-submit {
-  min-width: 110px;
-  padding: 10px 14px;
-  border-radius: var(--radius-input);
-  font-family: var(--font-family-base);
-  font-size: 0.92rem;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.forgot-password-cancel {
-  border: 1px solid var(--color-border-main);
-  background: var(--color-card-bg);
-  color: var(--color-text-main);
-}
-
-.forgot-password-submit {
-  border: none;
-  background: var(--color-primary);
-  color: var(--color-white);
-}
-
-.forgot-password-submit:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
-}
-
 .forgot-password-success-card {
   width: 100%;
   max-width: 360px;
@@ -237,19 +197,6 @@ input:focus {
   font-size: 0.95rem;
   font-weight: 600;
   line-height: 1.4;
-}
-
-.forgot-password-success-button {
-  min-width: 110px;
-  padding: 10px 14px;
-  border: none;
-  border-radius: var(--radius-input);
-  background: var(--color-primary);
-  color: var(--color-white);
-  font-family: var(--font-family-base);
-  font-size: 0.92rem;
-  font-weight: 600;
-  cursor: pointer;
 }
 
 @media (max-width: 480px) {
@@ -282,9 +229,8 @@ input:focus {
     font-size: 0.9rem;
   }
 
-  .form button {
-    padding: 10px;
-    font-size: 0.9rem;
+  .login-submit-button {
+    min-height: 2.55rem;
   }
 
   .forgot-password {
@@ -299,8 +245,7 @@ input:focus {
     flex-direction: column;
   }
 
-  .forgot-password-cancel,
-  .forgot-password-submit {
+  .forgot-password-actions .app-button {
     width: 100%;
   }
 
@@ -308,7 +253,7 @@ input:focus {
     padding: 18px 16px;
   }
 
-  .forgot-password-success-button {
+  .forgot-password-success-card .app-button {
     width: 100%;
   }
 }

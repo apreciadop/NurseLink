@@ -125,6 +125,8 @@ body {
   align-items: center;
   gap: 10px;
   min-width: 0;
+  flex: 1;
+  overflow: hidden;
 }
 
 .patient-topbarheading-icon {
@@ -140,6 +142,7 @@ body {
   font-size: 1.1rem;
   font-weight: 700;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .patient-topbarname {
@@ -147,6 +150,8 @@ body {
   font-size: 0.95rem;
   font-weight: 600;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .patient-topbarmenu-button {
@@ -177,6 +182,7 @@ body {
   cursor: pointer;
   box-sizing: border-box;
   flex-shrink: 0;
+  margin-left: 16px;
 }
 
 .patient-topbarlogout:hover,
@@ -323,6 +329,7 @@ body {
     min-width: 84px;
     padding: 8px 10px;
     font-size: 0.8rem;
+    margin-left: 8px;
   }
 
   .patient-sidebaricon {

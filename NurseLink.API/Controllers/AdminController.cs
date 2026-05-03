@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using NurseLink.API.Database;
+using NurseLink.API.Domain.Common;
 using NurseLink.API.Domain.DTOs;
 using NurseLink.API.Domain.Entities;
 using NurseLink.API.Domain.Enums;
@@ -11,31 +12,27 @@ namespace NurseLink.API.Controllers
     [Authorize]
     [ApiController]
     [Route("api/[controller]")]
-    public class AdminController : ControllerBase
+    public class AdminController(NurseLinkDbContext context, ILogger<AdminController> logger) : ControllerBase
     {
-        private readonly NurseLinkDbContext _context;
-        private readonly ILogger<AdminController> _logger;
-
-        public AdminController(NurseLinkDbContext context, ILogger<AdminController> logger)
-        {
-            _context = context;
-            _logger = logger;
-        }
+        private readonly NurseLinkDbContext _context = context;
+        private readonly ILogger<AdminController> _logger = logger;
 
         [HttpPost("create")]
-        public async Task<ActionResult<CreateAdminResponseDto>> CreateAdmin([FromBody] CreateAdminRequestDto request)
+        public async Task<ActionResult<CreateAdminResponseDto>> CreateAdmin([FromBody] CreateAdminRequestDto request, CancellationToken cancellation)
         {
             if (request == null)
                 return BadRequest("Request body is required.");
 
-            if (!ModelState.IsValid)
-                return BadRequest("Invalid data. Please check required fields.");
+            var passwordError = PasswordValidator.Validate(request.Password);
 
-            if (string.IsNullOrWhiteSpace(request.Name) || string.IsNullOrWhiteSpace(request.Surname) || string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password))
-                return BadRequest("Name, surname, email and password are required.");
+            if (passwordError != null)
+                return BadRequest(passwordError);
+
+            var email = request.Email.Trim();
 
             var emailExists = await _context.Users
-                .AnyAsync(u => u.UserEmail == request.Email);
+                .AsNoTracking()
+                .AnyAsync(u => u.UserEmail == email, cancellation);
 
             if (emailExists)
                 return BadRequest("Email already exists.");
@@ -44,10 +41,10 @@ namespace NurseLink.API.Controllers
             {
                 var user = new User
                 {
-                    UserRole = (int)UserRole.Admin,
-                    UserName = request.Name,
-                    UserSurname = request.Surname,
-                    UserEmail = request.Email,
+                    UserRole = UserRole.Admin,
+                    UserName = request.Name.Trim(),
+                    UserSurname = request.Surname.Trim(),
+                    UserEmail = email,
                     UserPassword = BCrypt.Net.BCrypt.HashPassword(request.Password),
                     UserActive = true,
                     UserBirthdate = null,
@@ -63,8 +60,7 @@ namespace NurseLink.API.Controllers
                 };
 
                 _context.Administrators.Add(admin);
-
-                await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync(cancellation);
 
                 return Ok(new CreateAdminResponseDto
                 {
@@ -75,7 +71,7 @@ namespace NurseLink.API.Controllers
                     Surname = admin.User.UserSurname,
                     Email = admin.User.UserEmail,
                     Role = admin.User.UserRole,
-                    RoleName = ((UserRole)admin.User.UserRole).ToString(),
+                    RoleName = admin.User.UserRole.ToString(),
                     Active = admin.User.UserActive,
                     CreatedAt = admin.User.CreatedAt
                 });
@@ -88,12 +84,12 @@ namespace NurseLink.API.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll(CancellationToken cancellation)
         {
             try
             {
                 var admins = await _context.Administrators
-                    .Include(a => a.User)
+                    .AsNoTracking()
                     .Select(a => new
                     {
                         adminId = a.AdminId,
@@ -102,11 +98,13 @@ namespace NurseLink.API.Controllers
                         surname = a.User.UserSurname,
                         email = a.User.UserEmail,
                         role = a.User.UserRole,
-                        roleName = ((UserRole)a.User.UserRole).ToString(),
+                        roleName = a.User.UserRole.ToString(),
                         active = a.User.UserActive,
                         createdAt = a.User.CreatedAt
                     })
-                    .ToListAsync();
+                    .OrderBy(a => a.name)
+                    .ThenBy(a => a.surname)
+                    .ToArrayAsync(cancellation);
 
                 return Ok(admins);
             }
@@ -118,16 +116,32 @@ namespace NurseLink.API.Controllers
         }
 
         [HttpGet("dashboardKpis")]
-        public async Task<ActionResult<GetAdminDashboardKpisResponseDto>> GetDashboardKpis()
+        public async Task<ActionResult<GetAdminDashboardKpisResponseDto>> GetDashboardKpis(CancellationToken cancellation)
         {
             try
             {
-                var totalPatients = await _context.Patients.CountAsync();
-                var totalNurses = await _context.Nurses.CountAsync();
-                var totalAlerts = await _context.Reports.CountAsync(r => r.ReportStatus == ReportStatus.Alert);
+                var totalPatients = await _context.Patients.CountAsync(cancellation);
+                var totalNurses = await _context.Nurses.CountAsync(cancellation);
+
+                var latestReports = _context.Reports
+                    .AsNoTracking()
+                    .Where(r => !_context.Reports.Any(r2 =>
+                        r2.PatientId == r.PatientId &&
+                        (
+                            r2.ReportDate > r.ReportDate ||
+                            (r2.ReportDate == r.ReportDate && r2.ReportId > r.ReportId)
+                        )));
+
+                var totalAlerts = await latestReports
+                    .SumAsync(r =>
+                        (r.ReportPain >= 7 ? 1 : 0) +
+                        (r.ReportFever ? 1 : 0) +
+                        (r.ReportBleeding ? 1 : 0) +
+                        (r.ReportSwelling ? 1 : 0),
+                        cancellation);
 
                 var unassignedPatients = await _context.Patients
-                    .CountAsync(p => !_context.Assignments.Any(a => a.PatientId == p.PatientId));
+                    .CountAsync(p => !_context.Assignments.Any(a => a.PatientId == p.PatientId), cancellation);
 
                 var response = new GetAdminDashboardKpisResponseDto
                 {
@@ -147,11 +161,12 @@ namespace NurseLink.API.Controllers
         }
 
         [HttpGet("patientsWithAlerts")]
-        public async Task<ActionResult<List<GetPatientWithAlertResponseDto>>> GetPatientsWithAlerts()
+        public async Task<ActionResult<GetPatientWithAlertResponseDto[]>> GetPatientsWithAlerts(CancellationToken cancellation)
         {
             try
             {
                 var latestReports = _context.Reports
+                    .AsNoTracking()
                     .Where(r => !_context.Reports.Any(r2 =>
                         r2.PatientId == r.PatientId &&
                         (
@@ -160,27 +175,37 @@ namespace NurseLink.API.Controllers
                         )));
 
                 var patientsWithAlerts = await latestReports
-                    .Where(r => r.ReportStatus == ReportStatus.Alert)
-                    .Select(r => new GetPatientWithAlertResponseDto
+                    .Select(r => new
                     {
-                        PatientId = r.PatientId,
-                        PatientName = r.Patient.User.UserName,
-                        PatientSurname = r.Patient.User.UserSurname,
-                        ReportDate = r.ReportDate,
-                        ReportStatus = r.ReportStatus.ToString(),
-                        CreatedAt = r.CreatedAt,
-                        NurseId = r.NurseId!.Value,
-                        NurseName = r.Nurse!.User.UserName,
-                        NurseSurname = r.Nurse.User.UserSurname,
-                        ReportPain = r.ReportPain,
-                        ReportFever = r.ReportFever,
-                        ReportBleeding = r.ReportBleeding,
-                        ReportSwelling = r.ReportSwelling
+                        Report = r,
+                        AlertCount =
+                            (r.ReportPain >= 7 ? 1 : 0) +
+                            (r.ReportFever ? 1 : 0) +
+                            (r.ReportBleeding ? 1 : 0) +
+                            (r.ReportSwelling ? 1 : 0)
                     })
-                    .OrderByDescending(r => r.ReportDate)
-                    .ThenBy(r => r.PatientSurname)
-                    .ThenBy(r => r.PatientName)
-                    .ToListAsync();
+                    .Where(x => x.AlertCount > 0)
+                    .OrderBy(x => x.Report.Patient.User.UserName)
+                    .ThenBy(x => x.Report.Patient.User.UserSurname)
+                    .ThenByDescending(x => x.Report.ReportDate)
+                    .Select(x => new GetPatientWithAlertResponseDto
+                    {
+                        PatientId = x.Report.PatientId,
+                        PatientName = x.Report.Patient.User.UserName,
+                        PatientSurname = x.Report.Patient.User.UserSurname,
+                        ReportDate = x.Report.ReportDate,
+                        CreatedAt = x.Report.CreatedAt,
+                        ReportStatus = x.Report.ReportStatus.ToString(),
+                        NurseId = x.Report.NurseId!.Value,
+                        NurseName = x.Report.Nurse!.User.UserName,
+                        NurseSurname = x.Report.Nurse.User.UserSurname,
+                        ReportPain = x.Report.ReportPain,
+                        ReportFever = x.Report.ReportFever,
+                        ReportBleeding = x.Report.ReportBleeding,
+                        ReportSwelling = x.Report.ReportSwelling,
+                        AlertCount = x.AlertCount
+                    })
+                    .ToArrayAsync(cancellation);
 
                 return Ok(patientsWithAlerts);
             }
@@ -192,12 +217,15 @@ namespace NurseLink.API.Controllers
         }
 
         [HttpGet("unassignedPatients")]
-        public async Task<ActionResult<List<GetUnassignedPatientResponseDto>>> GetUnassignedPatients()
+        public async Task<ActionResult<GetUnassignedPatientResponseDto[]>> GetUnassignedPatients(CancellationToken cancellation)
         {
             try
             {
                 var unassignedPatients = await _context.Patients
+                    .AsNoTracking()
                     .Where(p => !_context.Assignments.Any(a => a.PatientId == p.PatientId))
+                    .OrderBy(p => p.User.UserName)
+                    .ThenBy(p => p.User.UserSurname)
                     .Select(p => new GetUnassignedPatientResponseDto
                     {
                         PatientId = p.PatientId,
@@ -206,9 +234,7 @@ namespace NurseLink.API.Controllers
                         SurgeryTypeName = p.Surgery.SurgeryType.SurgeryTypeName,
                         SurgeryDate = p.Surgery.SurgeryDate
                     })
-                    .OrderBy(p => p.PatientSurname)
-                    .ThenBy(p => p.PatientName)
-                    .ToListAsync();
+                    .ToArrayAsync(cancellation);
 
                 return Ok(unassignedPatients);
             }

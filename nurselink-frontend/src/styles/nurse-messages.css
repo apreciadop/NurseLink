@@ -272,37 +272,6 @@
   margin-top: 1rem;
 }
 
-.nurse-messages-pagination {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.85rem;
-  padding: 0 1.25rem 1.15rem;
-}
-
-.nurse-messages-pagination-button {
-  width: 2.15rem;
-  height: 2.15rem;
-  border: 1px solid var(--color-border-soft);
-  border-radius: 0.65rem;
-  background: var(--color-card-bg);
-  color: var(--color-primary);
-  font: inherit;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.nurse-messages-pagination-button:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-}
-
-.nurse-messages-pagination-text {
-  color: var(--color-primary);
-  font-size: 0.95rem;
-  font-weight: 700;
-}
-
 .nurse-chat-head {
   display: flex;
   align-items: center;
@@ -487,11 +456,6 @@
 
   .nurse-messages-filters {
     grid-template-columns: 1fr;
-  }
-
-  .nurse-messages-pagination {
-    flex-direction: column;
-    gap: 0.6rem;
   }
 
   .nurse-messages-table thead th,

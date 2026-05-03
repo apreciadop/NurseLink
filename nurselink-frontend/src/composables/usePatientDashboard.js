@@ -15,6 +15,7 @@ import {
 export function usePatientDashboard() {
   const loading = ref(false)
   const errorMessage = ref('')
+  const successMessage = ref('')
 
   const reportsLoading = ref(false)
   const reportsErrorMessage = ref('')
@@ -75,6 +76,40 @@ export function usePatientDashboard() {
     return null
   }
 
+  const calculateAge = (birthdate) => {
+    if (!birthdate) {
+      return null
+    }
+
+    let date = new Date(birthdate)
+
+    if (Number.isNaN(date.getTime()) && typeof birthdate === 'string') {
+      const parts = birthdate.split('/')
+
+      if (parts.length === 3) {
+        const [day, month, year] = parts
+        date = new Date(Number(year), Number(month) - 1, Number(day))
+      }
+    }
+
+    if (Number.isNaN(date.getTime())) {
+      return null
+    }
+
+    const today = new Date()
+    let age = today.getFullYear() - date.getFullYear()
+    const monthDifference = today.getMonth() - date.getMonth()
+
+    if (
+      monthDifference < 0 ||
+      (monthDifference === 0 && today.getDate() < date.getDate())
+    ) {
+      age -= 1
+    }
+
+    return age
+  }
+
   const calculateStatusFromAlerts = (alertCount) => {
     if (Number(alertCount) === 0) {
       return 'Stable'
@@ -131,6 +166,7 @@ export function usePatientDashboard() {
 
   const mapPatient = (data) => {
     const alertCount = data.alertCount ?? data.alerts ?? 0
+    const birthdateSource = data.birthdate ?? data.birthDate ?? data.userBirthdate ?? data.userBirthDate ?? null
 
     return {
       patientId: data.patientId ?? data.id ?? 0,
@@ -138,8 +174,8 @@ export function usePatientDashboard() {
       surname: data.surname ?? '',
       email: data.email ?? '',
       phone: data.phone ?? '',
-      birthdate: formatDate(data.birthdate),
-      age: data.age ?? null,
+      birthdate: formatDate(birthdateSource),
+      age: data.age ?? calculateAge(birthdateSource),
       photo: data.photo ?? data.photoUrl ?? '',
       surgery: getSurgeryName(data),
       surgeryTypeId: data.surgeryTypeId ?? data.SurgeryTypeId ?? null,
@@ -205,6 +241,10 @@ export function usePatientDashboard() {
     nurseObservations: ''
   }))
 
+  const clearPatientDashboardFeedback = () => {
+    successMessage.value = ''
+  }
+
   const loadSurgeryTypes = async () => {
     const data = await getSurgeryTypes()
     surgeryTypes.value = data ?? []
@@ -262,6 +302,7 @@ export function usePatientDashboard() {
   }
 
   const openCreateReportModal = () => {
+    successMessage.value = ''
     resetReportForm()
     isCreateReportModalOpen.value = true
   }
@@ -273,6 +314,7 @@ export function usePatientDashboard() {
 
   const submitCreateReport = async () => {
     createReportErrorMessage.value = ''
+    successMessage.value = ''
 
     if (!patient.value.patientId) {
       createReportErrorMessage.value = 'Patient identifier was not found.'
@@ -293,6 +335,7 @@ export function usePatientDashboard() {
 
       closeCreateReportModal()
       await loadPatientDashboard()
+      successMessage.value = 'Report created successfully.'
     } catch (error) {
       createReportErrorMessage.value = error.message || 'Error creating report.'
     } finally {
@@ -346,6 +389,7 @@ export function usePatientDashboard() {
   return {
     loading,
     errorMessage,
+    successMessage,
     patient,
     reports,
     reportDateFilter,
@@ -375,6 +419,7 @@ export function usePatientDashboard() {
     closeViewReportModal,
     resetReportsPage,
     goToPreviousReportsPage,
-    goToNextReportsPage
+    goToNextReportsPage,
+    clearPatientDashboardFeedback
   }
 }

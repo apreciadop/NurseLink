@@ -11,7 +11,7 @@ namespace NurseLink.API.Domain.Entities
         public int SurgeryTypeId { get; set; }
 
         [Required]
-        [MaxLength(150)]
+        [MaxLength(255)]
         [Column("surgeryType_name")]
         public string SurgeryTypeName { get; set; } = string.Empty;
 
@@ -19,6 +19,6 @@ namespace NurseLink.API.Domain.Entities
         [Column("created_at")]
         public DateTime CreatedAt { get; set; }
 
-        public ICollection<Surgery> Surgeries { get; set; } = new List<Surgery>();
+        public ICollection<Surgery> Surgeries { get; set; } = [];
     }
 }

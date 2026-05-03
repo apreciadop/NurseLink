@@ -5,10 +5,12 @@ namespace NurseLink.API.Domain.DTOs
     public class CreatePatientRequestDto
     {
         [Required]
+        [MinLength(2)]
         [MaxLength(100)]
         public string Name { get; set; } = string.Empty;
 
         [Required]
+        [MinLength(2)]
         [MaxLength(150)]
         public string Surname { get; set; } = string.Empty;
 
@@ -18,11 +20,6 @@ namespace NurseLink.API.Domain.DTOs
         public string Email { get; set; } = string.Empty;
 
         [Required]
-        [MaxLength(255)]
-        [RegularExpression(
-            @"^(?=.{6,255}$)(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).+$",
-            ErrorMessage = "Password must contain at least one uppercase letter, one lowercase letter, one number and one special character."
-        )]
         public string Password { get; set; } = string.Empty;
 
         [Required]
@@ -37,8 +34,8 @@ namespace NurseLink.API.Domain.DTOs
         [MaxLength(1000)]
         public string? PatientObservations { get; set; }
 
-        [Required]
-        public int? SurgeryTypeId { get; set; }
+        [Range(1, int.MaxValue, ErrorMessage = "SurgeryTypeId must be greater than 0.")]
+        public int SurgeryTypeId { get; set; }
 
         [Required]
         [DataType(DataType.Date)]

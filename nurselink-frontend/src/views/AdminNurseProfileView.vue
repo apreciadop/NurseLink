@@ -1,4 +1,29 @@
-<script src="../scripts/adminNurseProfileView.js"></script>
+<script setup>
+import { onMounted } from 'vue'
+import AppFeedbackModal from '../components/AppFeedbackModal.vue'
+import { useAdminNurseProfile } from '../composables/useAdminNurseProfile'
+
+const {
+  loading,
+  errorMessage,
+  saveLoading,
+  saveMessage,
+  saveErrorMessage,
+  nurseForm,
+  filteredAssignedPatients,
+  assignedPatientsCount,
+  assignedAlertsCount,
+  patientSearchTerm,
+  loadProfileData,
+  handlePhotoChange,
+  submitUpdateNurse,
+  clearSaveFeedback
+} = useAdminNurseProfile()
+
+onMounted(() => {
+  loadProfileData()
+})
+</script>
 
 <template>
   <section class="admin-nurse-profile">
@@ -14,7 +39,7 @@
       <section class="nurse-profile-toprow">
         <section class="nurse-profile-left">
           <div class="nurse-profile-photo">
-            <img v-if="nurseForm.photo" :src="nurseForm.photo" alt="Nurse photo"/>
+            <img v-if="nurseForm.photo" :src="nurseForm.photo" alt="Nurse photo" />
             <span v-else>No photo</span>
           </div>
 
@@ -23,11 +48,11 @@
             <p class="nurse-profile-id">Employee ID {{ nurseForm.nurseId }}</p>
 
             <label for="profilePhotoInput" class="nurse-profile-photo-button">
-              <img src="/icons/cameraBlue.png" alt="Change Photo" class="nurse-profile-photo-button-icon"/>
+              <img src="/icons/cameraBlue.png" alt="Change Photo" class="nurse-profile-photo-button-icon" />
               <span>Change Photo</span>
             </label>
 
-            <input id="profilePhotoInput" type="file" class="nurse-profile-fileinput" accept="image/*" @change="handlePhotoChange"/>
+            <input id="profilePhotoInput" type="file" class="nurse-profile-fileinput" accept="image/*" @change="handlePhotoChange" />
           </div>
         </section>
 
@@ -37,32 +62,32 @@
           <div class="nurse-profile-formgrid nurse-profile-formgrid-threecols">
             <div class="nurse-profile-field">
               <label for="profileName" class="nurse-profile-label">Name</label>
-              <input id="profileName" v-model="nurseForm.name" type="text" class="nurse-profile-input" placeholder="Name"/>
+              <input id="profileName" v-model="nurseForm.name" type="text" class="nurse-profile-input" placeholder="Name" />
             </div>
 
             <div class="nurse-profile-field">
               <label for="profileSurname" class="nurse-profile-label">Surname</label>
-              <input id="profileSurname" v-model="nurseForm.surname" type="text" class="nurse-profile-input" placeholder="Surname"/>
+              <input id="profileSurname" v-model="nurseForm.surname" type="text" class="nurse-profile-input" placeholder="Surname" />
             </div>
 
             <div class="nurse-profile-field">
               <label for="profileBirthdate" class="nurse-profile-label">Birthdate</label>
-              <input id="profileBirthdate" v-model="nurseForm.birthdate" type="date" class="nurse-profile-input"/>
+              <input id="profileBirthdate" v-model="nurseForm.birthdate" type="date" class="nurse-profile-input" />
             </div>
 
             <div class="nurse-profile-field">
               <label for="profileEmail" class="nurse-profile-label">Email</label>
-              <input id="profileEmail" v-model="nurseForm.email" type="email" class="nurse-profile-input" placeholder="Email"/>
+              <input id="profileEmail" v-model="nurseForm.email" type="email" class="nurse-profile-input" placeholder="Email" />
             </div>
 
             <div class="nurse-profile-field">
               <label for="profilePassword" class="nurse-profile-label">Password</label>
-              <input id="profilePassword" v-model="nurseForm.password" type="password" class="nurse-profile-input" placeholder="Leave empty to keep current password"/>
+              <input id="profilePassword" v-model="nurseForm.password" type="password" class="nurse-profile-input" placeholder="Leave empty to keep current password" />
             </div>
 
             <div class="nurse-profile-field">
               <label for="profilePhone" class="nurse-profile-label">Phone</label>
-              <input id="profilePhone" v-model="nurseForm.phone" type="text" class="nurse-profile-input" placeholder="Phone"/>
+              <input id="profilePhone" v-model="nurseForm.phone" type="text" class="nurse-profile-input" placeholder="Phone" />
             </div>
 
             <div class="nurse-profile-statusrow">
@@ -80,13 +105,9 @@
                 </label>
               </div>
 
-              <button type="button" class="nurse-profile-save" :disabled="saveLoading" @click="submitUpdateNurse">{{ saveLoading ? 'Saving...' : 'Save' }}</button>
+              <button type="button" class="app-button app-button-primary" :disabled="saveLoading" @click="submitUpdateNurse">{{ saveLoading ? 'Saving...' : 'Save' }}</button>
             </div>
           </div>
-
-          <p v-if="saveErrorMessage" class="nurse-profile-message nurse-profile-message-error">{{ saveErrorMessage }}</p>
-
-          <p v-if="saveMessage" class="nurse-profile-message nurse-profile-message-success">{{ saveMessage }}</p>
         </section>
       </section>
 
@@ -95,12 +116,12 @@
           <h3 class="nurse-profile-patientstitle">Assigned Patients</h3>
 
           <div class="nurse-profile-patientsstats">
-            <span class="nurse-profile-patientscount">{{ assignedPatientsCount }} patients </span>
-            <span class="nurse-profile-alertscount">{{ assignedAlertsCount }} alerts </span>
+            <span class="nurse-profile-patientscount">{{ assignedPatientsCount }} patients</span>
+            <span class="nurse-profile-alertscount">{{ assignedAlertsCount }} alerts</span>
           </div>
 
           <div class="nurse-profile-patientssearch">
-            <input v-model="patientSearchTerm" type="text" class="nurse-profile-patientssearch-input" placeholder="Search Patients..." aria-label="Search patients"/>
+            <input v-model="patientSearchTerm" type="text" class="app-input" placeholder="Search Patients..." aria-label="Search patients" />
           </div>
         </header>
 
@@ -126,11 +147,11 @@
                   <td>{{ patient.name }} {{ patient.surname }}</td>
                   <td>{{ patient.surgery }}</td>
                   <td>{{ patient.surgeryDate || '-' }}</td>
+
                   <td>
-                    <span :class="['nurse-profile-statusbadge', patient.status === 'Stable' ? 'nurse-profile-statusbadge-stable' : patient.status === 'Warning'
-                      ? 'nurse-profile-statusbadge-warning'
-                      : 'nurse-profile-statusbadge-alert']">{{ patient.status }}</span>
+                    <span :class="['app-badge', patient.status === 'Stable' ? 'app-badge-stable' : patient.status === 'Warning' ? 'app-badge-warning' : 'app-badge-alert']">{{ patient.status }}</span>
                   </td>
+
                   <td>{{ patient.alertCount }}</td>
                 </tr>
               </tbody>
@@ -139,6 +160,8 @@
         </section>
       </section>
     </section>
+
+    <AppFeedbackModal :visible="!!(saveMessage || saveErrorMessage)" :message="saveErrorMessage || saveMessage" :type="saveErrorMessage ? 'error' : 'success'" @close="clearSaveFeedback" />
   </section>
 </template>
 

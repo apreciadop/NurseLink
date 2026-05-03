@@ -41,6 +41,8 @@ export function useNurseMessages() {
   let pollingId = null
   let isRefreshingList = false
   let isRefreshingChat = false
+  let lastLoadedConversationId = null
+  let lastLoadedMode = ''
 
   const conversationId = computed(() => {
     const value = route.params.conversationId
@@ -218,6 +220,7 @@ export function useNurseMessages() {
       if (!silent) {
         errorMessage.value = error.message || 'Error loading conversations.'
       }
+
       console.error('Load nurse conversations error:', error)
     } finally {
       if (!silent) {
@@ -248,6 +251,7 @@ export function useNurseMessages() {
       if (!silent) {
         errorMessage.value = error.message || 'Error loading conversation detail.'
       }
+
       console.error('Load conversation detail error:', error)
     } finally {
       if (!silent) {
@@ -292,6 +296,7 @@ export function useNurseMessages() {
       if (!silent) {
         errorMessage.value = error.message || 'Error loading conversation messages.'
       }
+
       console.error('Load conversation messages error:', error)
     } finally {
       if (!silent) {
@@ -319,10 +324,30 @@ export function useNurseMessages() {
 
     try {
       if (isConversationView.value) {
+        if (
+          lastLoadedMode === 'conversation' &&
+          lastLoadedConversationId === conversationId.value
+        ) {
+          return
+        }
+
+        lastLoadedMode = 'conversation'
+        lastLoadedConversationId = conversationId.value
+
         await loadConversationView()
       } else {
+        if (lastLoadedMode === 'list') {
+          return
+        }
+
+        lastLoadedMode = 'list'
+        lastLoadedConversationId = null
+
         await loadConversations()
       }
+    } catch (error) {
+      errorMessage.value = error.message || 'Error loading messages.'
+      console.error('Load nurse messages error:', error)
     } finally {
       loading.value = false
 
@@ -404,6 +429,7 @@ export function useNurseMessages() {
         silent: true,
         scrollToBottom: true
       })
+
       await loadConversations({ silent: true })
     } catch (error) {
       errorMessage.value = error.message || 'Error sending message.'
@@ -413,6 +439,8 @@ export function useNurseMessages() {
   }
 
   const goBackToConversations = () => {
+    lastLoadedMode = ''
+    lastLoadedConversationId = null
     router.push('/nurse/messages')
   }
 
@@ -446,7 +474,7 @@ export function useNurseMessages() {
       }
 
       loadConversations({ silent: true })
-    }, isConversationView.value ? 3000 : 5000)
+    }, isConversationView.value ? 5000 : 10000)
   }
 
   const stopPolling = () => {

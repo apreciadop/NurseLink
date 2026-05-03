@@ -171,6 +171,11 @@ export function useAdminPatientProfile() {
     }
   }
 
+  const clearSaveFeedback = () => {
+    saveMessage.value = ''
+    saveErrorMessage.value = ''
+  }
+
   const handlePhotoChange = (event) => {
     const file = event.target.files?.[0]
 
@@ -184,8 +189,7 @@ export function useAdminPatientProfile() {
       return
     }
 
-    saveErrorMessage.value = ''
-    saveMessage.value = ''
+    clearSaveFeedback()
 
     const reader = new FileReader()
 
@@ -201,8 +205,7 @@ export function useAdminPatientProfile() {
   }
 
   const submitUpdatePatient = async () => {
-    saveMessage.value = ''
-    saveErrorMessage.value = ''
+    clearSaveFeedback()
 
     if (!patientForm.name.trim()) {
       saveErrorMessage.value = 'Name is required.'
@@ -316,6 +319,7 @@ export function useAdminPatientProfile() {
     handlePhotoChange,
     submitUpdatePatient,
     openViewReportModal,
-    closeViewReportModal
+    closeViewReportModal,
+    clearSaveFeedback
   }
 }

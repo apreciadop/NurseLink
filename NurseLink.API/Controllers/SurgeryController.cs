@@ -10,68 +10,78 @@ namespace NurseLink.API.Controllers
     [Authorize]
     [ApiController]
     [Route("api/[controller]")]
-    public class SurgeriesController : ControllerBase
+    public class SurgeriesController(NurseLinkDbContext context, ILogger<SurgeriesController> logger) : ControllerBase
     {
-        private readonly NurseLinkDbContext _context;
-        private readonly ILogger<SurgeriesController> _logger;
-
-        public SurgeriesController(NurseLinkDbContext context, ILogger<SurgeriesController> logger)
-        {
-            _context = context;
-            _logger = logger;
-        }
+        private readonly NurseLinkDbContext _context = context;
+        private readonly ILogger<SurgeriesController> _logger = logger;
 
         [HttpPost("create")]
-        public async Task<ActionResult<CreateSurgeryResponseDto>> Create([FromBody] CreateSurgeryRequestDto request)
+        public async Task<ActionResult<CreateSurgeryResponseDto>> Create([FromBody] CreateSurgeryRequestDto request, CancellationToken cancellation)
         {
             if (request == null)
                 return BadRequest("Request body required.");
 
-            if (!ModelState.IsValid)
-                return BadRequest("Invalid data. Please check required fields.");
+            if (!request.SurgeryDate.HasValue)
+                return BadRequest("Surgery date is required.");
 
-            if (request.PatientId <= 0 || request.SurgeryTypeId <= 0 || request.SurgeryDate == default)
-                return BadRequest("Patient, SurgeryType and SurgeryDate are required.");
-
-            var patient = await _context.Patients
-                .Include(p => p.User)
-                .FirstOrDefaultAsync(p => p.PatientId == request.PatientId);
-
-            if (patient == null)
-                return BadRequest("Patient does not exist.");
-
-            var surgeryType = await _context.SurgeryTypes
-                .FirstOrDefaultAsync(s => s.SurgeryTypeId == request.SurgeryTypeId);
-
-            if (surgeryType == null)
-                return BadRequest("Surgery type does not exist.");
-
-            var patientAlreadyHasSurgery = await _context.Surgeries
-                .AnyAsync(s => s.PatientId == request.PatientId);
-
-            if (patientAlreadyHasSurgery)
-                return BadRequest("This patient already has a surgery assigned.");
+            var patientId = request.PatientId;
+            var surgeryTypeId = request.SurgeryTypeId;
+            var surgeryDate = request.SurgeryDate.Value;
 
             try
             {
+                var patient = await _context.Patients
+                    .AsNoTracking()
+                    .Where(p => p.PatientId == patientId)
+                    .Select(p => new
+                    {
+                        p.PatientId,
+                        p.User.UserName,
+                        p.User.UserSurname
+                    })
+                    .FirstOrDefaultAsync(cancellation);
+
+                if (patient == null)
+                    return BadRequest("Patient does not exist.");
+
+                var surgeryType = await _context.SurgeryTypes
+                    .AsNoTracking()
+                    .Where(s => s.SurgeryTypeId == surgeryTypeId)
+                    .Select(s => new
+                    {
+                        s.SurgeryTypeId,
+                        s.SurgeryTypeName
+                    })
+                    .FirstOrDefaultAsync(cancellation);
+
+                if (surgeryType == null)
+                    return BadRequest("Surgery type does not exist.");
+
+                var patientAlreadyHasSurgery = await _context.Surgeries
+                    .AsNoTracking()
+                    .AnyAsync(s => s.PatientId == patientId, cancellation);
+
+                if (patientAlreadyHasSurgery)
+                    return BadRequest("This patient already has a surgery assigned.");
+
                 var surgery = new Surgery
                 {
-                    PatientId = request.PatientId,
-                    SurgeryTypeId = request.SurgeryTypeId,
-                    SurgeryDate = request.SurgeryDate,
+                    PatientId = patientId,
+                    SurgeryTypeId = surgeryTypeId,
+                    SurgeryDate = surgeryDate,
                     CreatedAt = DateTime.UtcNow
                 };
 
                 _context.Surgeries.Add(surgery);
-                await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync(cancellation);
 
                 return Ok(new CreateSurgeryResponseDto
                 {
                     Message = "Surgery created successfully.",
                     SurgeryId = surgery.SurgeryId,
                     PatientId = patient.PatientId,
-                    PatientName = patient.User.UserName,
-                    PatientSurname = patient.User.UserSurname,
+                    PatientName = patient.UserName,
+                    PatientSurname = patient.UserSurname,
                     SurgeryTypeId = surgeryType.SurgeryTypeId,
                     SurgeryTypeName = surgeryType.SurgeryTypeName,
                     SurgeryDate = surgery.SurgeryDate,
@@ -83,22 +93,20 @@ namespace NurseLink.API.Controllers
                 _logger.LogError(
                     ex,
                     "Error creating surgery for PatientId {PatientId} and SurgeryTypeId {SurgeryTypeId}",
-                    request.PatientId,
-                    request.SurgeryTypeId);
+                    patientId,
+                    surgeryTypeId);
 
-                return StatusCode(500, "Error creating surgery for PatientId " + request.PatientId + " and SurgeryTypeId " + request.SurgeryTypeId + ".");
+                return StatusCode(500, "Error creating surgery for PatientId " + patientId + " and SurgeryTypeId " + surgeryTypeId + ".");
             }
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<ActionResult<object[]>> GetAll(CancellationToken cancellation)
         {
             try
             {
                 var surgeries = await _context.Surgeries
-                    .Include(s => s.Patient)
-                        .ThenInclude(p => p.User)
-                    .Include(s => s.SurgeryType)
+                    .AsNoTracking()
                     .Select(s => new
                     {
                         surgeryId = s.SurgeryId,
@@ -110,7 +118,10 @@ namespace NurseLink.API.Controllers
                         surgeryDate = s.SurgeryDate,
                         createdAt = s.CreatedAt
                     })
-                    .ToListAsync();
+                    .OrderBy(s => s.patientName)
+                    .ThenBy(s => s.patientSurname)
+                    .ThenByDescending(s => s.surgeryDate)
+                    .ToArrayAsync(cancellation);
 
                 return Ok(surgeries);
             }

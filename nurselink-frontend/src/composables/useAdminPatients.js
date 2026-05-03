@@ -14,8 +14,10 @@ import {
 export function useAdminPatients() {
   const loading = ref(false)
   const errorMessage = ref('')
+  const successMessage = ref('')
   const searchTerm = ref('')
   const activeFilter = ref('all')
+  const statusFilter = ref('all')
   const patients = ref([])
   const surgeryTypes = ref([])
   const nurses = ref([])
@@ -47,6 +49,12 @@ export function useAdminPatients() {
     surgeryDate: ''
   })
 
+  const clearAdminPatientsFeedback = () => {
+    successMessage.value = ''
+    patientFormErrorMessage.value = ''
+    assignErrorMessage.value = ''
+  }
+
   const resetPatientForm = () => {
     patientForm.name = ''
     patientForm.surname = ''
@@ -62,7 +70,7 @@ export function useAdminPatients() {
     patientFormErrorMessage.value = ''
   }
 
-  const normalizeStatusLabel = (status) => {
+  const normalizeStatusLabel = (status, alertCount = 0) => {
     if (status === 0 || status === 'Stable') {
       return 'Stable'
     }
@@ -75,17 +83,44 @@ export function useAdminPatients() {
       return 'Alert'
     }
 
-    return 'Stable'
+    const statusText = String(status ?? '').toLowerCase()
+
+    if (statusText === 'stable') {
+      return 'Stable'
+    }
+
+    if (statusText === 'warning') {
+      return 'Warning'
+    }
+
+    if (statusText === 'alert') {
+      return 'Alert'
+    }
+
+    const alerts = Number(alertCount ?? 0)
+
+    if (alerts === 0) {
+      return 'Stable'
+    }
+
+    if (alerts <= 2) {
+      return 'Warning'
+    }
+
+    return 'Alert'
   }
 
   const mapPatient = (patient) => {
+    const alertCount = patient.alertCount ?? patient.alerts ?? 0
+
     return {
       ...patient,
       birthdate: formatDate(patient.birthdate),
       birthdateValue: formatDateForInput(patient.birthdate),
       surgeryDate: formatDate(patient.surgeryDate),
       surgeryDateValue: formatDateForInput(patient.surgeryDate),
-      statusLabel: normalizeStatusLabel(patient.status)
+      statusLabel: normalizeStatusLabel(patient.status ?? patient.statusLabel, alertCount),
+      alertCount
     }
   }
 
@@ -115,13 +150,22 @@ export function useAdminPatients() {
   const loadNurses = async () => {
     try {
       const data = await getNurses()
-      nurses.value = (data ?? []).filter(nurse => nurse.active)
+      nurses.value = (data ?? [])
+        .filter(nurse => nurse.active)
+        .sort((a, b) => {
+          const nameComparison = (a.name ?? '').localeCompare(b.name ?? '')
+
+          return nameComparison !== 0
+            ? nameComparison
+            : (a.surname ?? '').localeCompare(b.surname ?? '')
+        })
     } catch (error) {
       errorMessage.value = error.message || 'Error loading nurses.'
     }
   }
 
   const openCreatePatientModal = async () => {
+    clearAdminPatientsFeedback()
     resetPatientForm()
     await loadSurgeryTypes()
     isPatientModalOpen.value = true
@@ -133,7 +177,7 @@ export function useAdminPatients() {
   }
 
   const openAssignModal = async (patient) => {
-    assignErrorMessage.value = ''
+    clearAdminPatientsFeedback()
     selectedPatient.value = patient
     selectedNurseId.value = ''
     await loadNurses()
@@ -148,7 +192,7 @@ export function useAdminPatients() {
   }
 
   const submitAssignment = async () => {
-    assignErrorMessage.value = ''
+    clearAdminPatientsFeedback()
 
     if (!selectedPatient.value?.patientId) {
       assignErrorMessage.value = 'No patient selected.'
@@ -170,6 +214,7 @@ export function useAdminPatients() {
 
       closeAssignModal()
       await loadPatients()
+      successMessage.value = 'Patient assigned successfully.'
     } catch (error) {
       assignErrorMessage.value = error.message || 'Error assigning patient.'
     } finally {
@@ -190,7 +235,7 @@ export function useAdminPatients() {
       return
     }
 
-    patientFormErrorMessage.value = ''
+    clearAdminPatientsFeedback()
 
     const reader = new FileReader()
 
@@ -207,7 +252,7 @@ export function useAdminPatients() {
   }
 
   const submitCreatePatient = async () => {
-    patientFormErrorMessage.value = ''
+    clearAdminPatientsFeedback()
 
     if (!patientForm.name.trim()) {
       patientFormErrorMessage.value = 'Name is required.'
@@ -262,6 +307,7 @@ export function useAdminPatients() {
 
       closePatientModal()
       await loadPatients()
+      successMessage.value = 'Patient created successfully.'
     } catch (error) {
       patientFormErrorMessage.value = error.message || 'Error creating patient.'
     } finally {
@@ -278,15 +324,11 @@ export function useAdminPatients() {
   })
 
   const stablePatients = computed(() => {
-    return activePatients.value.filter(
-      patient => patient.statusLabel === 'Stable'
-    ).length
+    return activePatients.value.filter(patient => patient.statusLabel === 'Stable').length
   })
 
   const patientsWithAlerts = computed(() => {
-    return activePatients.value.filter(
-      patient => (patient.alertCount ?? 0) > 0
-    ).length
+    return activePatients.value.filter(patient => (patient.alertCount ?? 0) > 0).length
   })
 
   const filteredPatients = computed(() => {
@@ -302,6 +344,12 @@ export function useAdminPatients() {
       result = result.filter(patient => !patient.active)
     }
 
+    if (statusFilter.value !== 'all') {
+      result = result.filter(patient => {
+        return patient.statusLabel.toLowerCase() === statusFilter.value
+      })
+    }
+
     if (!value) {
       return result
     }
@@ -310,10 +358,7 @@ export function useAdminPatients() {
       const fullName = `${patient.name ?? ''} ${patient.surname ?? ''}`.toLowerCase()
       const phone = (patient.phone ?? '').toLowerCase()
 
-      return (
-        fullName.includes(value) ||
-        phone.includes(value)
-      )
+      return fullName.includes(value) || phone.includes(value)
     })
   })
 
@@ -347,8 +392,10 @@ export function useAdminPatients() {
   return {
     loading,
     errorMessage,
+    successMessage,
     searchTerm,
     activeFilter,
+    statusFilter,
     patients,
     filteredPatients,
     paginatedPatients,
@@ -381,6 +428,7 @@ export function useAdminPatients() {
     submitCreatePatient,
     openAssignModal,
     closeAssignModal,
-    submitAssignment
+    submitAssignment,
+    clearAdminPatientsFeedback
   }
 }

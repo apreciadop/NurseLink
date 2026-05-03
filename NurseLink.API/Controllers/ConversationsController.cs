@@ -10,34 +10,32 @@ namespace NurseLink.API.Controllers
     [Authorize]
     [ApiController]
     [Route("api/[controller]")]
-    public class ConversationsController : ControllerBase
+    public class ConversationsController(NurseLinkDbContext context, ILogger<ConversationsController> logger) : ControllerBase
     {
-        private readonly NurseLinkDbContext _context;
-        private readonly ILogger<ConversationsController> _logger;
-
-        public ConversationsController(NurseLinkDbContext context, ILogger<ConversationsController> logger)
-        {
-            _context = context;
-            _logger = logger;
-        }
+        private readonly NurseLinkDbContext _context = context;
+        private readonly ILogger<ConversationsController> _logger = logger;
 
         [HttpGet("nurse/{nurseId}")]
-        public async Task<ActionResult<List<GetNurseConversationsResponseDto>>> GetNurseConversations(int nurseId)
+        public async Task<ActionResult<GetNurseConversationsResponseDto[]>> GetNurseConversations(
+            int nurseId,
+            CancellationToken cancellation)
         {
             try
             {
                 var nurseExists = await _context.Nurses
-                    .AnyAsync(n => n.NurseId == nurseId);
+                    .AsNoTracking()
+                    .AnyAsync(n => n.NurseId == nurseId, cancellation);
 
                 if (!nurseExists)
                     return NotFound("Nurse not found.");
 
                 var conversations = await _context.Conversations
+                    .AsNoTracking()
                     .Where(c => c.NurseId == nurseId)
                     .Include(c => c.Patient)
                         .ThenInclude(p => p.User)
                     .Include(c => c.Messages)
-                    .ToListAsync();
+                    .ToArrayAsync(cancellation);
 
                 var result = conversations
                     .Select(c =>
@@ -66,7 +64,7 @@ namespace NurseLink.API.Controllers
                         };
                     })
                     .OrderByDescending(c => c.LastMessageDate ?? c.CreatedAt)
-                    .ToList();
+                    .ToArray();
 
                 return Ok(result);
             }
@@ -78,30 +76,29 @@ namespace NurseLink.API.Controllers
         }
 
         [HttpPost("getOrCreate")]
-        public async Task<ActionResult<GetOrCreateConversationResponseDto>> GetOrCreateConversation(
-            [FromBody] GetOrCreateConversationRequestDto request)
+        public async Task<ActionResult<GetOrCreateConversationResponseDto>> GetOrCreateConversation([FromBody] GetOrCreateConversationRequestDto request, CancellationToken cancellation)
         {
             if (request == null)
                 return BadRequest("Request body is required.");
 
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
-            if (request.NurseId <= 0 || request.PatientId <= 0)
-                return BadRequest("NurseId and PatientId must be greater than 0.");
-
             try
             {
                 var assignmentExists = await _context.Assignments
-                    .AnyAsync(a => a.NurseId == request.NurseId && a.PatientId == request.PatientId);
+                    .AsNoTracking()
+                    .AnyAsync(a =>
+                        a.NurseId == request.NurseId &&
+                        a.PatientId == request.PatientId,
+                        cancellation);
 
                 if (!assignmentExists)
                     return BadRequest("This nurse and patient are not currently assigned.");
 
                 var conversation = await _context.Conversations
-                    .FirstOrDefaultAsync(c =>
-                        c.NurseId == request.NurseId &&
-                        c.PatientId == request.PatientId);
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(c => c.PatientId == request.PatientId, cancellation);
+
+                if (conversation != null && conversation.NurseId != request.NurseId)
+                    return BadRequest("This patient already has a conversation with another nurse.");
 
                 if (conversation == null)
                 {
@@ -113,7 +110,7 @@ namespace NurseLink.API.Controllers
                     };
 
                     _context.Conversations.Add(conversation);
-                    await _context.SaveChangesAsync();
+                    await _context.SaveChangesAsync(cancellation);
                 }
 
                 return Ok(new GetOrCreateConversationResponseDto
@@ -128,32 +125,35 @@ namespace NurseLink.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting or creating conversation for nurse {NurseId} and patient {PatientId}", request.NurseId, request.PatientId);
-
                 return StatusCode(500, "Error getting or creating conversation for nurse " + request.NurseId + " and patient " + request.PatientId + ".");
             }
         }
 
         [HttpGet("patient/{patientId}/getOrCreate")]
-        public async Task<ActionResult<GetOrCreateConversationResponseDto>> GetOrCreateConversationForPatient(int patientId)
+        public async Task<ActionResult<GetOrCreateConversationResponseDto>> GetOrCreateConversationForPatient(int patientId, CancellationToken cancellation)
         {
             try
             {
-                var patient = await _context.Patients
-                    .FirstOrDefaultAsync(p => p.PatientId == patientId);
+                var patientExists = await _context.Patients
+                    .AsNoTracking()
+                    .AnyAsync(p => p.PatientId == patientId, cancellation);
 
-                if (patient == null)
+                if (!patientExists)
                     return NotFound("Patient not found.");
 
                 var assignment = await _context.Assignments
-                    .FirstOrDefaultAsync(a => a.PatientId == patientId);
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(a => a.PatientId == patientId, cancellation);
 
                 if (assignment == null)
                     return BadRequest("This patient does not have an assigned nurse.");
 
                 var conversation = await _context.Conversations
-                    .FirstOrDefaultAsync(c =>
-                        c.PatientId == patientId &&
-                        c.NurseId == assignment.NurseId);
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(c => c.PatientId == patientId, cancellation);
+
+                if (conversation != null && conversation.NurseId != assignment.NurseId)
+                    return BadRequest("The existing conversation does not match the current assignment.");
 
                 if (conversation == null)
                 {
@@ -165,7 +165,7 @@ namespace NurseLink.API.Controllers
                     };
 
                     _context.Conversations.Add(conversation);
-                    await _context.SaveChangesAsync();
+                    await _context.SaveChangesAsync(cancellation);
                 }
 
                 return Ok(new GetOrCreateConversationResponseDto
@@ -185,16 +185,17 @@ namespace NurseLink.API.Controllers
         }
 
         [HttpGet("{conversationId}")]
-        public async Task<ActionResult<GetConversationDetailResponseDto>> GetConversationDetail(int conversationId)
+        public async Task<ActionResult<GetConversationDetailResponseDto>> GetConversationDetail(int conversationId, CancellationToken cancellation)
         {
             try
             {
                 var conversation = await _context.Conversations
+                    .AsNoTracking()
                     .Include(c => c.Nurse)
                         .ThenInclude(n => n.User)
                     .Include(c => c.Patient)
                         .ThenInclude(p => p.User)
-                    .FirstOrDefaultAsync(c => c.ConversationId == conversationId);
+                    .FirstOrDefaultAsync(c => c.ConversationId == conversationId, cancellation);
 
                 if (conversation == null)
                     return NotFound("Conversation not found.");
@@ -221,20 +222,18 @@ namespace NurseLink.API.Controllers
         }
 
         [HttpGet("{conversationId}/messages")]
-        public async Task<ActionResult<GetConversationMessagesResponseDto>> GetConversationMessages(
-            int conversationId,
-            [FromQuery] int? nurseId,
-            [FromQuery] int? patientId)
+        public async Task<ActionResult<GetConversationMessagesResponseDto>> GetConversationMessages(int conversationId, [FromQuery] int? nurseId, [FromQuery] int? patientId, CancellationToken cancellation)
         {
             try
             {
                 var conversation = await _context.Conversations
+                    .AsNoTracking()
                     .Include(c => c.Nurse)
                         .ThenInclude(n => n.User)
                     .Include(c => c.Patient)
                         .ThenInclude(p => p.User)
                     .Include(c => c.Messages)
-                    .FirstOrDefaultAsync(c => c.ConversationId == conversationId);
+                    .FirstOrDefaultAsync(c => c.ConversationId == conversationId, cancellation);
 
                 if (conversation == null)
                     return NotFound("Conversation not found.");
@@ -281,15 +280,10 @@ namespace NurseLink.API.Controllers
         }
 
         [HttpPost("{conversationId}/messages")]
-        public async Task<ActionResult<SendMessageResponseDto>> SendMessage(
-            int conversationId,
-            [FromBody] SendMessageRequestDto request)
+        public async Task<ActionResult<SendMessageResponseDto>> SendMessage(int conversationId, [FromBody] SendMessageRequestDto request, CancellationToken cancellation)
         {
             if (request == null)
                 return BadRequest("Request body is required.");
-
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
 
             if (string.IsNullOrWhiteSpace(request.MessageText))
                 return BadRequest("Message text is required.");
@@ -297,7 +291,8 @@ namespace NurseLink.API.Controllers
             try
             {
                 var conversation = await _context.Conversations
-                    .FirstOrDefaultAsync(c => c.ConversationId == conversationId);
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(c => c.ConversationId == conversationId, cancellation);
 
                 if (conversation == null)
                     return NotFound("Conversation not found.");
@@ -326,7 +321,7 @@ namespace NurseLink.API.Controllers
                 };
 
                 _context.Messages.Add(message);
-                await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync(cancellation);
 
                 return Ok(new SendMessageResponseDto
                 {
@@ -351,20 +346,16 @@ namespace NurseLink.API.Controllers
         }
 
         [HttpPut("{conversationId}/read")]
-        public async Task<ActionResult<MarkConversationAsReadResponseDto>> MarkConversationAsRead(
-            int conversationId,
-            [FromBody] MarkConversationAsReadRequestDto request)
+        public async Task<ActionResult<MarkConversationAsReadResponseDto>> MarkConversationAsRead(int conversationId, [FromBody] MarkConversationAsReadRequestDto request, CancellationToken cancellation)
         {
             if (request == null)
                 return BadRequest("Request body is required.");
 
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
             try
             {
                 var conversation = await _context.Conversations
-                    .FirstOrDefaultAsync(c => c.ConversationId == conversationId);
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(c => c.ConversationId == conversationId, cancellation);
 
                 if (conversation == null)
                     return NotFound("Conversation not found.");
@@ -383,18 +374,18 @@ namespace NurseLink.API.Controllers
                         m.ConversationId == conversationId &&
                         m.MessageSender == senderToMarkAsRead &&
                         !m.MessageRead)
-                    .ToListAsync();
+                    .ToArrayAsync(cancellation);
 
                 foreach (var message in unreadMessages)
                     message.MessageRead = true;
 
-                await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync(cancellation);
 
                 return Ok(new MarkConversationAsReadResponseDto
                 {
                     Message = "Conversation messages marked as read.",
                     ConversationId = conversationId,
-                    UpdatedMessagesCount = unreadMessages.Count
+                    UpdatedMessagesCount = unreadMessages.Length
                 });
             }
             catch (Exception ex)

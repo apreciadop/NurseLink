@@ -1,4 +1,62 @@
-<script src="../scripts/patientDashboardView.js"></script>
+<script setup>
+import { onMounted, watch } from 'vue'
+import AppFeedbackModal from '../components/AppFeedbackModal.vue'
+import ReportModal from '../views/ReportModal.vue'
+import { usePatientDashboard } from '../composables/usePatientDashboard'
+
+const {
+  loading,
+  errorMessage,
+  successMessage,
+  patient,
+  reports,
+  reportDateFilter,
+  reportStatusFilter,
+  reportsLoading,
+  reportsErrorMessage,
+  paginatedReports,
+  reportsCurrentPage,
+  reportsTotalPages,
+  isCreateReportModalOpen,
+  createReportLoading,
+  createReportErrorMessage,
+  isViewReportModalOpen,
+  reportDetailLoading,
+  reportDetailErrorMessage,
+  selectedReport,
+  painLevels,
+  reportForm,
+  createModalReport,
+  loadPatientDashboard,
+  openCreateReportModal,
+  closeCreateReportModal,
+  submitCreateReport,
+  openViewReportModal,
+  closeViewReportModal,
+  resetReportsPage,
+  goToPreviousReportsPage,
+  goToNextReportsPage,
+  clearPatientDashboardFeedback
+} = usePatientDashboard()
+
+watch(reportDateFilter, () => {
+  resetReportsPage()
+})
+
+watch(reportStatusFilter, () => {
+  resetReportsPage()
+})
+
+watch(reportsTotalPages, () => {
+  if (reportsCurrentPage.value > reportsTotalPages.value) {
+    reportsCurrentPage.value = reportsTotalPages.value
+  }
+})
+
+onMounted(() => {
+  loadPatientDashboard()
+})
+</script>
 
 <template>
   <section class="patient-dashboard">
@@ -10,39 +68,22 @@
       <section class="patient-dashboard-profilecard">
         <div class="patient-dashboard-profileleft">
           <div class="patient-dashboard-photo">
-            <img v-if="patient.photo" :src="patient.photo" alt="Patient photo"/>
+            <img v-if="patient.photo" :src="patient.photo" alt="Patient photo" />
             <span v-else>No photo</span>
           </div>
 
-          <span :class="['patient-dashboard-statusbadge', patient.statusLabel === 'Stable' ? 'patient-dashboard-statusbadge-stable' : patient.statusLabel === 'Warning'
-            ? 'patient-dashboard-statusbadge-warning'
-            : 'patient-dashboard-statusbadge-alert']">{{ patient.statusLabel }}</span>
+          <span :class="['app-badge', patient.statusLabel === 'Stable' ? 'app-badge-stable' : patient.statusLabel === 'Warning' ? 'app-badge-warning' : 'app-badge-alert']">{{ patient.statusLabel }}</span>
         </div>
 
         <div class="patient-dashboard-profileinfo">
           <div class="patient-dashboard-titleblock">
             <h2>{{ patient.name }} {{ patient.surname }}</h2>
-            <p>Patient ID #{{ patient.patientId }}</p>
+            <p>Patient ID {{ patient.patientId }}</p>
           </div>
 
           <div class="patient-dashboard-twocolumns">
             <section class="patient-dashboard-datacolumn">
               <h3>Personal Information</h3>
-
-              <div class="patient-dashboard-infoitem">
-                <span>Name</span>
-                <strong>{{ patient.name || '-' }}</strong>
-              </div>
-
-              <div class="patient-dashboard-infoitem">
-                <span>Surname</span>
-                <strong>{{ patient.surname || '-' }}</strong>
-              </div>
-
-              <div class="patient-dashboard-infoitem">
-                <span>Birthdate</span>
-                <strong>{{ patient.birthdate || '-' }}</strong>
-              </div>
 
               <div class="patient-dashboard-infoitem">
                 <span>Email</span>
@@ -53,10 +94,20 @@
                 <span>Phone</span>
                 <strong>{{ patient.phone || '-' }}</strong>
               </div>
+
+              <div class="patient-dashboard-infoitem">
+                <span>Birthdate</span>
+                <strong>{{ patient.birthdate || '-' }}</strong>
+              </div>
+
+              <div class="patient-dashboard-infoitem">
+                <span>Age</span>
+                <strong>{{ patient.age ?? '-' }}</strong>
+              </div>
             </section>
 
             <section class="patient-dashboard-datacolumn">
-              <h3>Operation Information</h3>
+              <h3>Surgery Information</h3>
 
               <div class="patient-dashboard-infoitem">
                 <span>Surgery</span>
@@ -64,13 +115,8 @@
               </div>
 
               <div class="patient-dashboard-infoitem">
-                <span>Surgery Date</span>
+                <span>Date</span>
                 <strong>{{ patient.surgeryDate || '-' }}</strong>
-              </div>
-
-              <div class="patient-dashboard-infoitem">
-                <span>Status</span>
-                <strong>{{ patient.statusLabel || '-' }}</strong>
               </div>
 
               <div class="patient-dashboard-infoitem">
@@ -83,14 +129,13 @@
 
         <div class="patient-dashboard-nurse">
           <div class="patient-dashboard-nursephoto">
-            <img v-if="patient.assignedNursePhoto" :src="patient.assignedNursePhoto" alt="Assigned nurse photo"/>
+            <img v-if="patient.assignedNursePhoto" :src="patient.assignedNursePhoto" alt="Assigned nurse photo" />
             <span v-else>No photo</span>
           </div>
 
           <div class="patient-dashboard-nurseinfo">
             <span class="patient-dashboard-nurselabel">Assigned Nurse</span>
-
-            <strong class="patient-dashboard-nursename">{{ patient.assignedNurseName || 'Not assigned' }}</strong>
+            <strong class="patient-dashboard-nursename">{{ patient.assignedNurseName || 'No nurse assigned' }}</strong>
           </div>
         </div>
       </section>
@@ -99,29 +144,44 @@
         <header class="patient-dashboard-reporthead">
           <div class="patient-dashboard-reporttitle-row">
             <h2>Symptom Reports</h2>
-            <button type="button" class="patient-dashboard-newreport-button" @click="openCreateReportModal">+ Add Report</button>
+            <button type="button" class="app-button app-button-primary" @click="openCreateReportModal">+ New Report</button>
           </div>
 
-          <section class="patient-dashboard-reportfilters">
-            <div class="patient-dashboard-filterfield">
-              <label for="reportDateFilter">Date</label>
-              <input id="reportDateFilter" v-model="reportDateFilter" type="date" class="patient-dashboard-filterinput"/>
+          <div class="patient-dashboard-reportfilters">
+            <div class="patient-dashboard-datefilter">
+              <label for="reportDateFilter" class="app-filter-label">Date</label>
+              <input id="reportDateFilter" v-model="reportDateFilter" type="date" class="app-input patient-dashboard-dateinput" />
             </div>
 
-            <div class="patient-dashboard-filterfield">
-              <label for="reportStatusFilter">Status</label>
-              <select id="reportStatusFilter" v-model="reportStatusFilter" class="patient-dashboard-filterinput">
-                <option value="all">All</option>
-                <option value="stable">Stable</option>
-                <option value="warning">Warning</option>
-                <option value="alert">Alert</option>
-              </select>
+            <div class="patient-dashboard-statusfilter">
+              <span class="app-filter-label">Status</span>
+
+              <label class="app-filter-option">
+                <input v-model="reportStatusFilter" type="radio" value="all" />
+                <span>All</span>
+              </label>
+
+              <label class="app-filter-option">
+                <input v-model="reportStatusFilter" type="radio" value="stable" />
+                <span>Stable</span>
+              </label>
+
+              <label class="app-filter-option">
+                <input v-model="reportStatusFilter" type="radio" value="warning" />
+                <span>Warning</span>
+              </label>
+
+              <label class="app-filter-option">
+                <input v-model="reportStatusFilter" type="radio" value="alert" />
+                <span>Alert</span>
+              </label>
             </div>
-          </section>
+          </div>
         </header>
 
         <section class="patient-dashboard-tablebody">
           <div v-if="reportsLoading" class="patient-dashboard-empty patient-dashboard-empty-panel">Loading reports...</div>
+
           <p v-else-if="reportsErrorMessage" class="patient-dashboard-message patient-dashboard-message-error">{{ reportsErrorMessage }}</p>
 
           <div v-else class="patient-dashboard-tablewrap">
@@ -129,7 +189,7 @@
               <thead>
                 <tr>
                   <th>Date</th>
-                  <th>Patient Status</th>
+                  <th>Status</th>
                   <th>Pain Level</th>
                   <th>Fever</th>
                   <th>Bleeding</th>
@@ -142,36 +202,32 @@
 
               <tbody>
                 <tr v-if="!paginatedReports.length">
-                  <td colspan="9" class="patient-dashboard-empty">No symptom reports found.</td>
+                  <td colspan="9" class="patient-dashboard-empty">No reports found.</td>
                 </tr>
 
                 <tr v-for="report in paginatedReports" :key="report.reportId">
                   <td>{{ report.reportDate || '-' }}</td>
 
                   <td class="patient-dashboard-col-center">
-                    <span :class="['patient-dashboard-reportstatusbadge', report.statusLabel === 'Stable' ? 'patient-dashboard-statusbadge-stable' : report.statusLabel === 'Warning'
-                      ? 'patient-dashboard-statusbadge-warning'
-                      : 'patient-dashboard-statusbadge-alert']">{{ report.statusLabel }}</span>
+                    <span :class="['app-badge', report.statusLabel === 'Stable' ? 'app-badge-stable' : report.statusLabel === 'Warning' ? 'app-badge-warning' : 'app-badge-alert']">{{ report.statusLabel }}</span>
                   </td>
 
-                  <td>{{ report.painLevel ?? '-' }}</td>
+                  <td class="patient-dashboard-col-center">{{ report.painLevel ?? '-' }}</td>
                   <td>{{ report.hasFever ? 'Yes' : 'No' }}</td>
                   <td>{{ report.hasBleeding ? 'Yes' : 'No' }}</td>
                   <td>{{ report.hasSwelling ? 'Yes' : 'No' }}</td>
 
                   <td class="patient-dashboard-col-center">
-                    <span :class="['patient-dashboard-alertbadge', report.alertCount === 0 ? 'patient-dashboard-alertbadge-stable' : report.alertCount <= 2
-                      ? 'patient-dashboard-alertbadge-warning'
-                      : 'patient-dashboard-alertbadge-alert']">{{ report.alertCount }}</span>
+                    <span :class="['app-badge', 'app-badge-small', report.alertCount === 0 ? 'app-badge-stable' : report.alertCount <= 2 ? 'app-badge-warning' : 'app-badge-alert']">{{ report.alertCount }}</span>
                   </td>
 
                   <td class="patient-dashboard-col-center">
-                    <span v-if="report.hasNurseObservations" class="patient-dashboard-notebadge">Added</span>
+                    <span class="app-badge app-badge-note">{{ report.hasNurseObservations ? 'Yes' : 'No' }}</span>
                   </td>
 
                   <td class="patient-dashboard-col-center">
-                    <button type="button" class="patient-dashboard-viewicon-button" @click.stop="openViewReportModal(report)" aria-label="View report" title="View report">
-                      <img src="/icons/view.png" alt="View report" class="patient-dashboard-viewicon"/>
+                    <button type="button" class="app-action-button" aria-label="View report" title="View report" @click.stop="openViewReportModal(report)">
+                      <img src="/icons/view.png" alt="View report" class="app-action-icon" />
                     </button>
                   </td>
                 </tr>
@@ -180,25 +236,19 @@
           </div>
         </section>
 
-        <footer class="patient-dashboard-pagination">
-          <button type="button" class="patient-dashboard-pagination-button" :disabled="reportsCurrentPage === 1" @click="goToPreviousReportsPage">&lt;</button>
-          <span class="patient-dashboard-pagination-text">Page {{ reportsCurrentPage }} of {{ reportsTotalPages }}</span>
-          <button type="button" class="patient-dashboard-pagination-button" :disabled="reportsCurrentPage === reportsTotalPages" @click="goToNextReportsPage">&gt;</button>
+        <footer class="app-pagination">
+          <button type="button" class="app-pagination-button" :disabled="reportsCurrentPage === 1" @click="goToPreviousReportsPage">&lt;</button>
+          <span class="app-pagination-text">Page {{ reportsCurrentPage }} of {{ reportsTotalPages }}</span>
+          <button type="button" class="app-pagination-button" :disabled="reportsCurrentPage === reportsTotalPages" @click="goToNextReportsPage">&gt;</button>
         </footer>
       </section>
     </section>
 
-    <ReportModal :visible="isCreateReportModalOpen" mode="create" :report="createModalReport" :pain-levels="painLevels" :submit-loading="createReportLoading" :error-message="createReportErrorMessage"
-      @close="closeCreateReportModal"
-      @submit="submitCreateReport"
-      @set-pain-level="reportForm.painLevel = $event"
-      @set-has-fever="reportForm.hasFever = $event"
-      @set-has-bleeding="reportForm.hasBleeding = $event"
-      @set-has-swelling="reportForm.hasSwelling = $event"
-      @update-observations="reportForm.observations = $event"
-    />
+    <ReportModal :visible="isCreateReportModalOpen" mode="create" :report="createModalReport" :pain-levels="painLevels" :loading="createReportLoading" :submit-loading="createReportLoading" :error-message="createReportErrorMessage" @close="closeCreateReportModal" @submit="submitCreateReport" @set-pain-level="reportForm.painLevel = $event" @set-has-fever="reportForm.hasFever = $event" @set-has-bleeding="reportForm.hasBleeding = $event" @set-has-swelling="reportForm.hasSwelling = $event" @update-observations="reportForm.observations = $event" />
 
-    <ReportModal :visible="isViewReportModalOpen" mode="view" :report="selectedReport || {}" :pain-levels="painLevels" :loading="reportDetailLoading" :error-message="reportDetailErrorMessage" @close="closeViewReportModal"/>
+    <ReportModal :visible="isViewReportModalOpen" mode="view" :report="selectedReport || {}" :pain-levels="painLevels" :loading="reportDetailLoading" :error-message="reportDetailErrorMessage" @close="closeViewReportModal" />
+
+    <AppFeedbackModal :visible="!!successMessage" :message="successMessage" type="success" @close="clearPatientDashboardFeedback" />
   </section>
 </template>
 

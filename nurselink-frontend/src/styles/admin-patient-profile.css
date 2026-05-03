@@ -33,7 +33,7 @@
 }
 
 .patient-profile-message-success {
-  color: #15803d;
+  color: var(--color-success);
 }
 
 .patient-profile-main {
@@ -106,45 +106,6 @@
   color: var(--color-text-placeholder);
   font-size: 0.92rem;
   font-weight: 600;
-}
-
-.patient-profile-statusbadge,
-.patient-profile-reportstatusbadge,
-.patient-profile-alertbadge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 104px;
-  padding: 0.42rem 0.9rem;
-  border-radius: 999px;
-  font-size: 0.82rem;
-  font-weight: 700;
-}
-
-.patient-profile-statusbadge {
-  width: auto;
-  min-width: 82px;
-  padding: 0.34rem 0.8rem;
-  margin-top: 0;
-  font-size: 0.78rem;
-}
-
-.patient-profile-statusbadge-stable,
-.patient-profile-alertbadge-stable {
-  background: var(--color-status-stable-bg);
-  color: var(--color-status-stable-text);
-}
-
-.patient-profile-statusbadge-warning,
-.patient-profile-alertbadge-warning {
-  background: var(--color-status-warning-bg);
-  color: var(--color-status-warning-text);
-}
-
-.patient-profile-statusbadge-alert,
-.patient-profile-alertbadge-alert {
-  background: var(--color-status-alert-bg);
-  color: var(--color-status-alert-text);
 }
 
 .patient-profile-photo-button {
@@ -273,27 +234,6 @@
   color: var(--color-text-main);
   font-size: 0.95rem;
   font-weight: 600;
-}
-
-.patient-profile-save {
-  min-height: 2.45rem;
-  padding: 0.55rem 1.35rem;
-  border: none;
-  border-radius: 0.7rem;
-  background: var(--color-primary);
-  color: var(--color-white);
-  font: inherit;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.patient-profile-save:hover {
-  opacity: 0.96;
-}
-
-.patient-profile-save:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
 }
 
 .patient-profile-observations,
@@ -428,29 +368,6 @@
   text-align: center !important;
 }
 
-.patient-profile-viewicon-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 2.2rem;
-  height: 2.2rem;
-  padding: 0;
-  border: none;
-  background: transparent;
-  cursor: pointer;
-}
-
-.patient-profile-viewicon {
-  width: 1.3rem;
-  height: 1.3rem;
-  object-fit: contain;
-  transition: transform 0.18s ease;
-}
-
-.patient-profile-viewicon-button:hover .patient-profile-viewicon {
-  transform: scale(1.14);
-}
-
 .patient-profile-empty {
   text-align: center;
   color: var(--color-text-placeholder);
@@ -513,7 +430,7 @@
     align-items: start;
   }
 
-  .patient-profile-save {
+  .patient-profile-statusrow .app-button {
     width: 100%;
   }
 }

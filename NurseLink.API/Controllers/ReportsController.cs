@@ -11,29 +11,25 @@ namespace NurseLink.API.Controllers
     [Authorize]
     [ApiController]
     [Route("api/[controller]")]
-    public class ReportsController : ControllerBase
+    public class ReportsController(NurseLinkDbContext context, ILogger<ReportsController> logger) : ControllerBase
     {
-        private readonly NurseLinkDbContext _context;
-        private readonly ILogger<ReportsController> _logger;
-
-        public ReportsController(NurseLinkDbContext context, ILogger<ReportsController> logger)
-        {
-            _context = context;
-            _logger = logger;
-        }
+        private readonly NurseLinkDbContext _context = context;
+        private readonly ILogger<ReportsController> _logger = logger;
 
         [HttpGet("patient/{patientId}")]
-        public async Task<ActionResult<List<GetReportResponseDto>>> GetReportsByPatient(int patientId)
+        public async Task<ActionResult<GetReportResponseDto[]>> GetReportsByPatient(int patientId, CancellationToken cancellation)
         {
             try
             {
                 var patientExists = await _context.Patients
-                    .AnyAsync(p => p.PatientId == patientId);
+                    .AsNoTracking()
+                    .AnyAsync(p => p.PatientId == patientId, cancellation);
 
                 if (!patientExists)
                     return NotFound("Patient not found.");
 
                 var reports = await _context.Reports
+                    .AsNoTracking()
                     .Where(r => r.PatientId == patientId)
                     .OrderByDescending(r => r.ReportDate)
                     .ThenByDescending(r => r.CreatedAt)
@@ -53,7 +49,7 @@ namespace NurseLink.API.Controllers
                         NurseId = r.NurseId,
                         NurseObservations = r.ReportNurseObservations
                     })
-                    .ToListAsync();
+                    .ToArrayAsync(cancellation);
 
                 return Ok(reports);
             }
@@ -65,11 +61,12 @@ namespace NurseLink.API.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<GetReportResponseDto>> GetReportById(int id)
+        public async Task<ActionResult<GetReportResponseDto>> GetReportById(int id, CancellationToken cancellation)
         {
             try
             {
                 var report = await _context.Reports
+                    .AsNoTracking()
                     .Where(r => r.ReportId == id)
                     .Select(r => new GetReportResponseDto
                     {
@@ -87,7 +84,7 @@ namespace NurseLink.API.Controllers
                         NurseId = r.NurseId,
                         NurseObservations = r.ReportNurseObservations
                     })
-                    .FirstOrDefaultAsync();
+                    .FirstOrDefaultAsync(cancellation);
 
                 if (report == null)
                     return NotFound("Report not found.");
@@ -102,19 +99,22 @@ namespace NurseLink.API.Controllers
         }
 
         [HttpPost("create")]
-        public async Task<ActionResult<CreateReportResponseDto>> CreateReport([FromBody] CreateReportRequestDto request)
+        public async Task<ActionResult<CreateReportResponseDto>> CreateReport([FromBody] CreateReportRequestDto request, CancellationToken cancellation)
         {
             if (request == null)
                 return BadRequest("Request body is required.");
 
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
             try
             {
                 var patient = await _context.Patients
-                    .Include(p => p.Assignment)
-                    .FirstOrDefaultAsync(p => p.PatientId == request.PatientId);
+                    .AsNoTracking()
+                    .Where(p => p.PatientId == request.PatientId)
+                    .Select(p => new
+                    {
+                        p.PatientId,
+                        NurseId = p.Assignment != null ? p.Assignment.NurseId : (int?)null
+                    })
+                    .FirstOrDefaultAsync(cancellation);
 
                 if (patient == null)
                     return NotFound("Patient not found.");
@@ -136,17 +136,15 @@ namespace NurseLink.API.Controllers
                     ReportFever = request.HasFever,
                     ReportBleeding = request.HasBleeding,
                     ReportSwelling = request.HasSwelling,
-                    ReportObservations = string.IsNullOrWhiteSpace(request.Observations)
-                        ? null
-                        : request.Observations.Trim(),
+                    ReportObservations = string.IsNullOrWhiteSpace(request.Observations) ? null : request.Observations.Trim(),
                     ReportAlerts = alertCount,
                     ReportStatus = status,
-                    NurseId = patient.Assignment?.NurseId,
+                    NurseId = patient.NurseId,
                     CreatedAt = DateTime.UtcNow
                 };
 
                 _context.Reports.Add(report);
-                await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync(cancellation);
 
                 return Ok(new CreateReportResponseDto
                 {
@@ -176,29 +174,21 @@ namespace NurseLink.API.Controllers
         }
 
         [HttpPut("{id}/nurseObservations")]
-        public async Task<ActionResult<GetReportResponseDto>> UpdateNurseObservations(
-            int id,
-            [FromBody] UpdateReportNurseObservationsRequestDto request)
+        public async Task<ActionResult<GetReportResponseDto>> UpdateNurseObservations(int id, [FromBody] UpdateReportNurseObservationsRequestDto request, CancellationToken cancellation)
         {
             if (request == null)
                 return BadRequest("Request body is required.");
 
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
             try
             {
                 var report = await _context.Reports
-                    .FirstOrDefaultAsync(r => r.ReportId == id);
+                    .FirstOrDefaultAsync(r => r.ReportId == id, cancellation);
 
                 if (report == null)
                     return NotFound("Report not found.");
 
-                report.ReportNurseObservations = string.IsNullOrWhiteSpace(request.NurseObservations)
-                    ? null
-                    : request.NurseObservations.Trim();
-
-                await _context.SaveChangesAsync();
+                report.ReportNurseObservations = string.IsNullOrWhiteSpace(request.NurseObservations) ? null : request.NurseObservations.Trim();
+                await _context.SaveChangesAsync(cancellation);
 
                 return Ok(new GetReportResponseDto
                 {
@@ -239,7 +229,7 @@ namespace NurseLink.API.Controllers
              * The total number of alerts is later used to determine the recovery status.
              *
              * Current rules:
-             * - Pain level greater 6 generates 1 alert.
+             * - Pain level greater than 6 generates 1 alert.
              * - Fever reported by the patient generates 1 alert.
              * - Bleeding reported by the patient generates 1 alert.
              * - Swelling reported by the patient generates 1 alert.

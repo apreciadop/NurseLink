@@ -5,6 +5,7 @@ export function useAdminNurses() {
   const nurses = ref([])
   const loading = ref(false)
   const errorMessage = ref('')
+  const successMessage = ref('')
   const searchTerm = ref('')
   const statusFilter = ref('all')
   const currentPage = ref(1)
@@ -27,6 +28,11 @@ export function useAdminNurses() {
 
   const photoPreview = ref('')
 
+  const clearAdminNursesFeedback = () => {
+    successMessage.value = ''
+    nurseFormErrorMessage.value = ''
+  }
+
   const filteredNurses = computed(() => {
     const value = searchTerm.value.trim().toLowerCase()
 
@@ -48,11 +54,8 @@ export function useAdminNurses() {
       const fullName = `${nurse.name ?? ''} ${nurse.surname ?? ''}`.toLowerCase()
       const phone = (nurse.phoneNumber ?? nurse.phone ?? '').toLowerCase()
 
-      return (
-        fullName.includes(value) ||
-        phone.includes(value)
-      )
-    })   
+      return fullName.includes(value) || phone.includes(value)
+    })
   })
 
   const totalPages = computed(() => {
@@ -75,6 +78,12 @@ export function useAdminNurses() {
     currentPage.value = 1
   })
 
+  watch(totalPages, (newTotalPages) => {
+    if (currentPage.value > newTotalPages) {
+      currentPage.value = newTotalPages
+    }
+  })
+
   const resetNurseForm = () => {
     nurseForm.value = {
       name: '',
@@ -91,6 +100,7 @@ export function useAdminNurses() {
   }
 
   const openCreateNurseModal = () => {
+    clearAdminNursesFeedback()
     nurseModalMode.value = 'create'
     resetNurseForm()
     isNurseModalOpen.value = true
@@ -119,7 +129,7 @@ export function useAdminNurses() {
       return
     }
 
-    nurseFormErrorMessage.value = ''
+    clearAdminNursesFeedback()
 
     const reader = new FileReader()
 
@@ -154,7 +164,7 @@ export function useAdminNurses() {
   }
 
   const submitCreateNurse = async () => {
-    nurseFormErrorMessage.value = ''
+    clearAdminNursesFeedback()
 
     if (!nurseForm.value.name.trim()) {
       nurseFormErrorMessage.value = 'Name is required.'
@@ -197,6 +207,7 @@ export function useAdminNurses() {
       await loadNursesDetailed()
       closeNurseModal()
       resetNurseForm()
+      successMessage.value = 'Nurse created successfully.'
     } catch (error) {
       nurseFormErrorMessage.value = error.message || 'Error creating nurse.'
       console.error('Create nurse error:', error)
@@ -221,6 +232,7 @@ export function useAdminNurses() {
     nurses,
     loading,
     errorMessage,
+    successMessage,
     searchTerm,
     statusFilter,
     currentPage,
@@ -238,6 +250,7 @@ export function useAdminNurses() {
     loadNursesDetailed,
     submitCreateNurse,
     goToPreviousPage,
-    goToNextPage
+    goToNextPage,
+    clearAdminNursesFeedback
   }
 }

@@ -40,6 +40,37 @@ export async function readApiResponse(response, fallbackMessage) {
   return data
 }
 
+export async function apiRequest(endpoint, options = {}, fallbackMessage = 'Unexpected error.') {
+  const { method = 'GET', body } = options
+
+  const requestOptions = {
+    method,
+    headers: getAuthHeaders()
+  }
+
+  if (body !== undefined) {
+    requestOptions.body = typeof body === 'string' ? body : JSON.stringify(body)
+  }
+
+  const response = await fetch(`${API_URL}${endpoint}`, requestOptions)
+
+  return await readApiResponse(response, fallbackMessage)
+}
+
+export function buildQueryString(query = {}) {
+  const params = new URLSearchParams()
+
+  Object.entries(query).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== '') {
+      params.append(key, String(value))
+    }
+  })
+
+  const queryString = params.toString()
+
+  return queryString ? `?${queryString}` : ''
+}
+
 export async function loginUser(email, password) {
   const response = await fetch(`${API_URL}/api/Auth/login`, {
     method: 'POST',
@@ -78,10 +109,15 @@ export function getUserRole() {
 export function getAuthHeaders() {
   const token = getAuthToken()
 
-  return {
-    'Content-Type': 'application/json',
-    Authorization: `Bearer ${token}`
+  const headers = {
+    'Content-Type': 'application/json'
   }
+
+  if (token) {
+    headers.Authorization = `Bearer ${token}`
+  }
+
+  return headers
 }
 
 export function logoutUser() {

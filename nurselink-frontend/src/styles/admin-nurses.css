@@ -2,9 +2,19 @@
   width: 100%;
 }
 
+.admin-nursescontent {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
 .admin-nursesmessage {
   margin: 0;
   color: var(--color-text-main);
+}
+
+.admin-nursesmessage-success {
+  color: var(--color-success);
 }
 
 .admin-nursesmessage-error {
@@ -34,47 +44,8 @@
   max-width: 420px;
 }
 
-.nurses-panelsearch-input {
-  width: 100%;
-  min-height: 2.75rem;
-  padding: 0 1rem;
-  border: 1px solid var(--color-border-soft);
-  border-radius: 0.75rem;
-  background-color: var(--color-white);
-  color: var(--color-text-main);
-  font: inherit;
-  outline: none;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-.nurses-panelsearch-input::placeholder {
-  color: var(--color-text-placeholder);
-}
-
-.nurses-panelsearch-input:focus {
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 4px var(--color-primary-light-ring);
-}
-
 .nurses-paneladd-button {
-  min-height: 2.75rem;
-  padding: 0.75rem 1.25rem;
-  border: none;
-  border-radius: 0.75rem;
-  background-color: var(--color-primary);
-  color: var(--color-white);
-  font: inherit;
-  font-weight: 600;
-  cursor: pointer;
-  transition: transform 0.2s ease, opacity 0.2s ease;
-}
-
-.nurses-paneladd-button:hover {
-  opacity: 0.95;
-}
-
-.nurses-paneladd-button:active {
-  transform: translateY(1px);
+  white-space: nowrap;
 }
 
 .nurses-panelfilters {
@@ -83,15 +54,6 @@
   gap: 1.25rem;
   padding: 0.9rem 1.5rem 0.25rem;
   background-color: var(--color-white);
-}
-
-.nurses-filteroption {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  color: var(--color-text-main);
-  font-size: 0.95rem;
-  font-weight: 600;
 }
 
 .nurses-paneltable-section {
@@ -208,100 +170,6 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-}
-
-.nurses-statusbadge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 88px;
-  padding: 0.38rem 0.75rem;
-  border-radius: 999px;
-  font-size: 0.82rem;
-  font-weight: 700;
-}
-
-.nurses-statusbadge-active {
-  background: var(--color-status-active-bg);
-  color: var(--color-status-active-text);
-}
-
-.nurses-statusbadge-inactive {
-  background: var(--color-status-inactive-bg);
-  color: var(--color-status-inactive-text);
-}
-
-.nurses-action-button {
-  border: none;
-  background: transparent;
-  padding: 0;
-  cursor: pointer;
-  text-decoration: none;
-}
-
-.nurses-action-button-icon {
-  width: 38px;
-  height: 38px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  transition: transform 0.18s ease;
-}
-
-.nurses-action-icon-image {
-  width: 22px;
-  height: 22px;
-  object-fit: contain;
-  display: block;
-  opacity: 0.95;
-  transition: transform 0.18s ease, opacity 0.18s ease;
-}
-
-.nurses-action-button-icon:hover {
-  background: transparent;
-  box-shadow: none;
-  border-color: transparent;
-}
-
-.nurses-action-button-icon:hover .nurses-action-icon-image {
-  transform: scale(1.18);
-  opacity: 1;
-}
-
-.nurses-action-button-icon:focus-visible {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 2px;
-}
-
-.nurses-panelpagination {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 1rem;
-  padding: 0 1.5rem 1rem;
-  background-color: var(--color-white);
-}
-
-.nurses-panelpagination-button {
-  width: 2.5rem;
-  height: 2.5rem;
-  border: 1px solid var(--color-border-soft);
-  border-radius: 0.75rem;
-  background-color: var(--color-white);
-  color: var(--color-text-main);
-  font: inherit;
-  cursor: pointer;
-}
-
-.nurses-panelpagination-button:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-}
-
-.nurses-panelpagination-text {
-  color: var(--color-text-main);
-  font-weight: 600;
 }
 
 .nurses-modal-overlay {
@@ -464,27 +332,6 @@
   border-top: 1px solid var(--color-border-soft);
 }
 
-.nurses-modalbutton {
-  min-width: 96px;
-  padding: 10px 14px;
-  border-radius: 0.75rem;
-  font: inherit;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.nurses-modalbutton-secondary {
-  border: 1px solid var(--color-border-soft);
-  background: var(--color-card-bg);
-  color: var(--color-text-main);
-}
-
-.nurses-modalbutton-primary {
-  border: 1px solid var(--color-primary);
-  background: var(--color-primary);
-  color: var(--color-white);
-}
-
 @media (max-width: 640px) {
   .nurses-paneltoolbar {
     flex-direction: column;
@@ -504,23 +351,9 @@
     padding: 0.9rem 1rem;
   }
 
-  .nurses-action-button-icon {
-    width: 34px;
-    height: 34px;
-  }
-
-  .nurses-action-icon-image {
-    width: 20px;
-    height: 20px;
-  }
-
   .nurses-photo {
     width: 42px;
     height: 42px;
-  }
-
-  .nurses-panelpagination {
-    padding: 0 1rem 1rem;
   }
 
   .nurses-modal {
@@ -553,7 +386,7 @@
     flex-direction: column;
   }
 
-  .nurses-modalbutton {
+  .nurses-modalfooter .app-button {
     width: 100%;
   }
 

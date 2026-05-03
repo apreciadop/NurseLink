@@ -1,0 +1,44 @@
+.app-input,
+.app-select {
+  width: 100%;
+  min-height: 2.7rem;
+  padding: 0 0.95rem;
+  border: 1px solid var(--color-border-soft);
+  border-radius: 0.6rem;
+  background: var(--color-white);
+  color: var(--color-text-main);
+  font: inherit;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.app-input:focus,
+.app-select:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-light-ring);
+}
+
+.app-filter-group {
+  display: flex;
+  align-items: center;
+  gap: 0.95rem;
+  flex-wrap: wrap;
+}
+
+.app-filter-label {
+  color: var(--color-primary);
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin-right: 0.15rem;
+}
+
+.app-filter-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--color-text-main);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+}

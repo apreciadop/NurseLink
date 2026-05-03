@@ -4,13 +4,14 @@ namespace NurseLink.API.Domain.DTOs
 {
     public class CreateSurgeryRequestDto
     {
-        [Required]
+        [Range(1, int.MaxValue, ErrorMessage = "PatientId must be greater than 0.")]
         public int PatientId { get; set; }
 
-        [Required]
+        [Range(1, int.MaxValue, ErrorMessage = "SurgeryTypeId must be greater than 0.")]
         public int SurgeryTypeId { get; set; }
 
         [Required]
-        public DateTime SurgeryDate { get; set; }
+        [DataType(DataType.Date)]
+        public DateTime? SurgeryDate { get; set; }
     }
 }

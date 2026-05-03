@@ -10,33 +10,22 @@ namespace NurseLink.API.Controllers
     [Authorize]
     [ApiController]
     [Route("api/[controller]")]
-    public class SurgeryTypeController : ControllerBase
+    public class SurgeryTypeController(NurseLinkDbContext context, ILogger<SurgeryTypeController> logger) : ControllerBase
     {
-        private readonly NurseLinkDbContext _context;
-        private readonly ILogger<SurgeryTypeController> _logger;
-
-        public SurgeryTypeController(NurseLinkDbContext context, ILogger<SurgeryTypeController> logger)
-        {
-            _context = context;
-            _logger = logger;
-        }
+        private readonly NurseLinkDbContext _context = context;
+        private readonly ILogger<SurgeryTypeController> _logger = logger;
 
         [HttpPost("create")]
-        public async Task<ActionResult<CreateSurgeryTypeResponseDto>> Create([FromBody] CreateSurgeryTypeRequestDto request)
+        public async Task<ActionResult<CreateSurgeryTypeResponseDto>> Create([FromBody] CreateSurgeryTypeRequestDto request, CancellationToken cancellation)
         {
             if (request == null)
                 return BadRequest("Request body required.");
 
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
-            if (string.IsNullOrWhiteSpace(request.Name))
-                return BadRequest("Surgery type name is required.");
-
-            var normalizedName = request.Name.Trim();
+            var name = request.Name.Trim();
 
             var exists = await _context.SurgeryTypes
-                .AnyAsync(s => s.SurgeryTypeName == normalizedName);
+                .AsNoTracking()
+                .AnyAsync(s => s.SurgeryTypeName == name, cancellation);
 
             if (exists)
                 return BadRequest("Surgery type already exists.");
@@ -45,12 +34,12 @@ namespace NurseLink.API.Controllers
             {
                 var surgeryType = new SurgeryType
                 {
-                    SurgeryTypeName = normalizedName,
+                    SurgeryTypeName = name,
                     CreatedAt = DateTime.UtcNow
                 };
 
                 _context.SurgeryTypes.Add(surgeryType);
-                await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync(cancellation);
 
                 return Ok(new CreateSurgeryTypeResponseDto
                 {
@@ -63,23 +52,24 @@ namespace NurseLink.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error creating surgery type with name {Name}", request.Name);
-                return StatusCode(500, "Error creating surgery type.");
+                return StatusCode(500, "Error creating surgery type: " + request.Name + ".");
             }
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<GetSurgeryTypeResponseDto>>> GetAll()
+        public async Task<ActionResult<GetSurgeryTypeResponseDto[]>> GetAll(CancellationToken cancellation)
         {
             try
             {
                 var surgeryTypes = await _context.SurgeryTypes
+                    .AsNoTracking()
                     .Select(s => new GetSurgeryTypeResponseDto
                     {
                         SurgeryTypeId = s.SurgeryTypeId,
                         Name = s.SurgeryTypeName
                     })
                     .OrderBy(s => s.Name)
-                    .ToListAsync();
+                    .ToArrayAsync(cancellation);
 
                 return Ok(surgeryTypes);
             }

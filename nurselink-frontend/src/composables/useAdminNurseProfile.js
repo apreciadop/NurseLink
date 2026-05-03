@@ -10,7 +10,7 @@ import { formatDate, formatDateForInput } from '../utils/dateUtils'
 export function useAdminNurseProfile() {
   const route = useRoute()
 
-  const nurseId = ref(route.params.id)
+  const nurseId = ref(Number(route.params.id))
   const loading = ref(false)
   const errorMessage = ref('')
   const saveLoading = ref(false)
@@ -130,6 +130,11 @@ export function useAdminNurseProfile() {
     }
   }
 
+  const clearSaveFeedback = () => {
+    saveMessage.value = ''
+    saveErrorMessage.value = ''
+  }
+
   const handlePhotoChange = (event) => {
     const file = event.target.files?.[0]
 
@@ -143,8 +148,7 @@ export function useAdminNurseProfile() {
       return
     }
 
-    saveErrorMessage.value = ''
-    saveMessage.value = ''
+    clearSaveFeedback()
 
     const reader = new FileReader()
 
@@ -160,8 +164,7 @@ export function useAdminNurseProfile() {
   }
 
   const submitUpdateNurse = async () => {
-    saveMessage.value = ''
-    saveErrorMessage.value = ''
+    clearSaveFeedback()
 
     if (!nurseForm.name.trim()) {
       saveErrorMessage.value = 'Name is required.'
@@ -175,6 +178,11 @@ export function useAdminNurseProfile() {
 
     if (!nurseForm.email.trim()) {
       saveErrorMessage.value = 'Email is required.'
+      return
+    }
+
+    if (!nurseForm.birthdate) {
+      saveErrorMessage.value = 'Birthdate is required.'
       return
     }
 
@@ -194,6 +202,7 @@ export function useAdminNurseProfile() {
 
       nurseForm.password = ''
       saveMessage.value = 'Nurse updated successfully.'
+      await loadNurse()
     } catch (error) {
       saveErrorMessage.value = error.message || 'Error updating nurse.'
       console.error('Update nurse error:', error)
@@ -219,6 +228,7 @@ export function useAdminNurseProfile() {
     loadAssignedPatients,
     loadProfileData,
     handlePhotoChange,
-    submitUpdateNurse
+    submitUpdateNurse,
+    clearSaveFeedback
   }
 }
