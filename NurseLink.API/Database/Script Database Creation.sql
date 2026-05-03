@@ -14,7 +14,7 @@ CREATE TABLE Users (
     user_active BIT NOT NULL DEFAULT 1,
     user_birthdate DATE NULL,
     user_phone VARCHAR(30) NULL,
-    user_photo VARCHAR(500) NULL,
+    user_photo VARCHAR(MAX) NULL,
     created_at DATETIME NOT NULL DEFAULT GETDATE(),
 
     CONSTRAINT UQ_Users_Email UNIQUE (user_email),
