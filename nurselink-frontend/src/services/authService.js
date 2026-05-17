@@ -1,7 +1,8 @@
 import { API_URL } from '../config/api'
 
-export async function readApiResponse(response, fallbackMessage) {
+export async function readApiResponse(response, fallbackMessage, options = {}) {
   const responseText = await response.text()
+  const redirectOnUnauthorized = options.redirectOnUnauthorized ?? true
 
   let data = null
   let message = fallbackMessage
@@ -21,7 +22,7 @@ export async function readApiResponse(response, fallbackMessage) {
   }
 
   if (!response.ok) {
-    if (response.status === 401) {
+    if (response.status === 401 && redirectOnUnauthorized) {
       logoutUser()
       window.location.href = '/login'
       throw new Error('Session expired.')
@@ -83,7 +84,9 @@ export async function loginUser(email, password) {
     })
   })
 
-  return await readApiResponse(response, 'Login failed.')
+  return await readApiResponse(response, 'Login failed.', {
+    redirectOnUnauthorized: false
+  })
 }
 
 export async function forgotPassword(request) {
@@ -95,7 +98,9 @@ export async function forgotPassword(request) {
     body: JSON.stringify(request)
   })
 
-  return await readApiResponse(response, 'Error updating password.')
+  return await readApiResponse(response, 'Error updating password.', {
+    redirectOnUnauthorized: false
+  })
 }
 
 export function getAuthToken() {
