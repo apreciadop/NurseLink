@@ -1,4 +1,4 @@
-import { computed, reactive, ref } from 'vue'
+import { computed, reactive, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import {
   getAssignedPatientsByNurse,
@@ -18,6 +18,8 @@ export function useAdminNurseProfile() {
   const saveErrorMessage = ref('')
   const assignedPatients = ref([])
   const patientSearchTerm = ref('')
+  const assignedPatientsCurrentPage = ref(1)
+  const assignedPatientsPageSize = 8
 
   const nurseForm = reactive({
     nurseId: 0,
@@ -55,9 +57,8 @@ export function useAdminNurseProfile() {
     }
   }
 
-  const filteredAssignedPatients = computed(() => {
+  const filteredAssignedPatientsList = computed(() => {
     const value = patientSearchTerm.value.trim().toLowerCase()
-
     const result = assignedPatients.value.map(mapAssignedPatient)
 
     if (!value) {
@@ -83,6 +84,15 @@ export function useAdminNurseProfile() {
     })
   })
 
+  const assignedPatientsTotalPages = computed(() => {
+    return Math.max(1, Math.ceil(filteredAssignedPatientsList.value.length / assignedPatientsPageSize))
+  })
+
+  const filteredAssignedPatients = computed(() => {
+    const start = (assignedPatientsCurrentPage.value - 1) * assignedPatientsPageSize
+    return filteredAssignedPatientsList.value.slice(start, start + assignedPatientsPageSize)
+  })
+
   const assignedPatientsCount = computed(() => {
     return assignedPatients.value.length
   })
@@ -91,6 +101,28 @@ export function useAdminNurseProfile() {
     return assignedPatients.value.reduce((total, patient) => {
       return total + Number(patient.alertCount ?? 0)
     }, 0)
+  })
+
+  const goToPreviousAssignedPatientsPage = () => {
+    if (assignedPatientsCurrentPage.value > 1) {
+      assignedPatientsCurrentPage.value--
+    }
+  }
+
+  const goToNextAssignedPatientsPage = () => {
+    if (assignedPatientsCurrentPage.value < assignedPatientsTotalPages.value) {
+      assignedPatientsCurrentPage.value++
+    }
+  }
+
+  watch(patientSearchTerm, () => {
+    assignedPatientsCurrentPage.value = 1
+  })
+
+  watch(assignedPatientsTotalPages, () => {
+    if (assignedPatientsCurrentPage.value > assignedPatientsTotalPages.value) {
+      assignedPatientsCurrentPage.value = assignedPatientsTotalPages.value
+    }
   })
 
   const loadNurse = async () => {
@@ -111,6 +143,7 @@ export function useAdminNurseProfile() {
   const loadAssignedPatients = async () => {
     const data = await getAssignedPatientsByNurse(nurseId.value)
     assignedPatients.value = data ?? []
+    assignedPatientsCurrentPage.value = 1
   }
 
   const loadProfileData = async () => {
@@ -223,10 +256,15 @@ export function useAdminNurseProfile() {
     filteredAssignedPatients,
     assignedPatientsCount,
     assignedAlertsCount,
+    assignedPatientsCurrentPage,
+    assignedPatientsTotalPages,
+    assignedPatientsPageSize,
     patientSearchTerm,
     loadNurse,
     loadAssignedPatients,
     loadProfileData,
+    goToPreviousAssignedPatientsPage,
+    goToNextAssignedPatientsPage,
     handlePhotoChange,
     submitUpdateNurse,
     clearSaveFeedback

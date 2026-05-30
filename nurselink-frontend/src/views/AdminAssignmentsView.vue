@@ -89,8 +89,6 @@ onMounted(() => {
         </select>
       </section>
 
-      <p v-if="assignErrorMessage" class="assignments-message assignments-message-error">{{ assignErrorMessage }}</p>
-
       <section class="assignments-panels">
         <article class="assignments-panel">
           <header class="assignments-panel-header">

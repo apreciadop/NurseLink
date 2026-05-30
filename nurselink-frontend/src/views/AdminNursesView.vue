@@ -96,7 +96,11 @@ onMounted(() => {
 
                   <td>{{ nurse.name }} {{ nurse.surname }}</td>
                   <td>{{ nurse.patientCount }}</td>
-                  <td>{{ nurse.alertCount }}</td>
+
+                  <td>
+                    <span :class="['app-badge', 'app-badge-small', nurse.alertCount === 0 ? 'app-badge-stable' : nurse.alertCount <= 2 ? 'app-badge-warning' : 'app-badge-alert']">{{ nurse.alertCount }}</span>
+                  </td>
+
                   <td>{{ nurse.phoneNumber }}</td>
 
                   <td>

@@ -26,6 +26,10 @@ export function useAdminPatientProfile() {
   const reportsLoading = ref(false)
   const reportsErrorMessage = ref('')
   const reports = ref([])
+  const allReports = ref([])
+  const reportsCurrentPage = ref(1)
+  const reportsTotalPages = ref(1)
+  const reportsPageSize = 8
 
   const isReportModalOpen = ref(false)
   const reportDetailLoading = ref(false)
@@ -109,6 +113,34 @@ export function useAdminPatientProfile() {
     }
   }
 
+  const getPagedItems = (data) => {
+    return data?.items ?? data?.reports ?? data?.data ?? data?.results ?? []
+  }
+
+  const getPagedTotalPages = (data, items) => {
+    const totalPages = data?.totalPages ?? data?.pages ?? data?.pageCount
+
+    if (totalPages) {
+      return Math.max(1, Number(totalPages))
+    }
+
+    const totalItems = data?.totalItems ?? data?.totalCount ?? data?.count ?? items.length
+
+    return Math.max(1, Math.ceil(Number(totalItems) / reportsPageSize))
+  }
+
+  const getPagedCurrentPage = (data, requestedPage) => {
+    return Number(data?.currentPage ?? data?.pageNumber ?? data?.page ?? requestedPage)
+  }
+
+  const setClientReportsPage = (page) => {
+    reportsCurrentPage.value = page
+    reportsTotalPages.value = Math.max(1, Math.ceil(allReports.value.length / reportsPageSize))
+
+    const start = (reportsCurrentPage.value - 1) * reportsPageSize
+    reports.value = allReports.value.slice(start, start + reportsPageSize)
+  }
+
   const loadPatient = async () => {
     const data = await getPatientById(patientId.value)
     const alertCount = data.alertCount ?? data.alerts ?? 0
@@ -137,19 +169,55 @@ export function useAdminPatientProfile() {
     surgeryTypes.value = data ?? []
   }
 
-  const loadReports = async () => {
+  const loadReports = async (page = reportsCurrentPage.value) => {
     reportsLoading.value = true
     reportsErrorMessage.value = ''
-    reports.value = []
 
     try {
-      const data = await getReportsByPatient(patientId.value)
-      reports.value = (data ?? []).map(mapReport)
+      const data = await getReportsByPatient(patientId.value, page, reportsPageSize)
+
+      if (Array.isArray(data)) {
+        allReports.value = data.map(mapReport)
+        setClientReportsPage(page)
+        return
+      }
+
+      const items = getPagedItems(data)
+      reports.value = items.map(mapReport)
+      reportsCurrentPage.value = getPagedCurrentPage(data, page)
+      reportsTotalPages.value = getPagedTotalPages(data, items)
+
+      if (reportsCurrentPage.value > reportsTotalPages.value) {
+        reportsCurrentPage.value = reportsTotalPages.value
+        await loadReports(reportsCurrentPage.value)
+      }
     } catch (error) {
       reportsErrorMessage.value = error.message || 'Error loading patient reports.'
       console.error('Admin patient reports error:', error)
     } finally {
       reportsLoading.value = false
+    }
+  }
+
+  const goToPreviousReportsPage = async () => {
+    if (reportsCurrentPage.value > 1) {
+      if (allReports.value.length) {
+        setClientReportsPage(reportsCurrentPage.value - 1)
+        return
+      }
+
+      await loadReports(reportsCurrentPage.value - 1)
+    }
+  }
+
+  const goToNextReportsPage = async () => {
+    if (reportsCurrentPage.value < reportsTotalPages.value) {
+      if (allReports.value.length) {
+        setClientReportsPage(reportsCurrentPage.value + 1)
+        return
+      }
+
+      await loadReports(reportsCurrentPage.value + 1)
     }
   }
 
@@ -161,7 +229,7 @@ export function useAdminPatientProfile() {
       await Promise.all([
         loadPatient(),
         loadSurgeryTypes(),
-        loadReports()
+        loadReports(1)
       ])
     } catch (error) {
       errorMessage.value = error.message || 'Error loading patient profile.'
@@ -306,6 +374,9 @@ export function useAdminPatientProfile() {
     reports,
     reportsLoading,
     reportsErrorMessage,
+    reportsCurrentPage,
+    reportsTotalPages,
+    reportsPageSize,
     hasReports,
     isReportModalOpen,
     reportDetailLoading,
@@ -315,6 +386,8 @@ export function useAdminPatientProfile() {
     loadPatient,
     loadSurgeryTypes,
     loadReports,
+    goToPreviousReportsPage,
+    goToNextReportsPage,
     loadProfileData,
     handlePhotoChange,
     submitUpdatePatient,

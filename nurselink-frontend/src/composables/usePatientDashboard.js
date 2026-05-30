@@ -25,7 +25,7 @@ export function usePatientDashboard() {
   const reportStatusFilter = ref('all')
 
   const reportsCurrentPage = ref(1)
-  const reportsPageSize = ref(5)
+  const reportsPageSize = ref(8)
 
   const surgeryTypes = ref([])
 

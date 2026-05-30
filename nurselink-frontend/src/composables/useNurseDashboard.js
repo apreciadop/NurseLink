@@ -24,10 +24,10 @@ export function useNurseDashboard() {
   const statusFilter = ref('all')
 
   const currentPage = ref(1)
-  const pageSize = ref(5)
+  const pageSize = ref(8)
 
   const reportsCurrentPage = ref(1)
-  const reportsPageSize = ref(5)
+  const reportsPageSize = ref(8)
 
   const loading = ref(false)
   const errorMessage = ref('')

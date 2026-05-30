@@ -103,6 +103,7 @@ onBeforeUnmount(() => {
           <table class="nurse-messages-table">
             <thead>
               <tr>
+                <th>Photo</th>
                 <th>Patient</th>
                 <th>Last Message</th>
                 <th>Date</th>
@@ -112,10 +113,17 @@ onBeforeUnmount(() => {
 
             <tbody>
               <tr v-if="!paginatedConversations.length">
-                <td colspan="4" class="nurse-messages-empty">No conversations found.</td>
+                <td colspan="5" class="nurse-messages-empty">No conversations found.</td>
               </tr>
 
               <tr v-for="conversation in paginatedConversations" :key="conversation.conversationId" class="nurse-messages-row" @click="openConversation(conversation)">
+                <td class="nurse-messages-photo-cell">
+                  <div class="nurse-messages-patient-photo">
+                    <img v-if="conversation.patientPhoto" :src="conversation.patientPhoto" alt="Patient photo" />
+                    <span v-else>No photo</span>
+                  </div>
+                </td>
+
                 <td>
                   <span class="nurse-messages-patient-name">{{ conversation.patientName }} {{ conversation.patientSurname }}</span>
                 </td>

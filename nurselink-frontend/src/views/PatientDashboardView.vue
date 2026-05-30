@@ -9,7 +9,6 @@ const {
   errorMessage,
   successMessage,
   patient,
-  reports,
   reportDateFilter,
   reportStatusFilter,
   reportsLoading,
@@ -121,7 +120,9 @@ onMounted(() => {
 
               <div class="patient-dashboard-infoitem">
                 <span>Alerts</span>
-                <strong>{{ patient.alertCount }}</strong>
+                <strong>
+                  <span :class="['app-badge', 'app-badge-small', patient.alertCount === 0 ? 'app-badge-stable' : patient.alertCount <= 2 ? 'app-badge-warning' : 'app-badge-alert']">{{ patient.alertCount }}</span>
+                </strong>
               </div>
             </section>
           </div>
@@ -212,10 +213,21 @@ onMounted(() => {
                     <span :class="['app-badge', report.statusLabel === 'Stable' ? 'app-badge-stable' : report.statusLabel === 'Warning' ? 'app-badge-warning' : 'app-badge-alert']">{{ report.statusLabel }}</span>
                   </td>
 
-                  <td class="patient-dashboard-col-center">{{ report.painLevel ?? '-' }}</td>
-                  <td>{{ report.hasFever ? 'Yes' : 'No' }}</td>
-                  <td>{{ report.hasBleeding ? 'Yes' : 'No' }}</td>
-                  <td>{{ report.hasSwelling ? 'Yes' : 'No' }}</td>
+                  <td class="patient-dashboard-col-center">
+                    <span :class="['patient-dashboard-pain', report.painLevel >= 7 ? 'patient-dashboard-pain-alert' : 'patient-dashboard-pain-ok']">{{ report.painLevel ?? '-' }}</span>
+                  </td>
+
+                  <td class="patient-dashboard-col-center">
+                    <span :class="['patient-dashboard-kpi-dot', report.hasFever ? 'patient-dashboard-kpi-dot-yes' : 'patient-dashboard-kpi-dot-no']" :title="report.hasFever ? 'Yes' : 'No'"></span>
+                  </td>
+
+                  <td class="patient-dashboard-col-center">
+                    <span :class="['patient-dashboard-kpi-dot', report.hasBleeding ? 'patient-dashboard-kpi-dot-yes' : 'patient-dashboard-kpi-dot-no']" :title="report.hasBleeding ? 'Yes' : 'No'"></span>
+                  </td>
+
+                  <td class="patient-dashboard-col-center">
+                    <span :class="['patient-dashboard-kpi-dot', report.hasSwelling ? 'patient-dashboard-kpi-dot-yes' : 'patient-dashboard-kpi-dot-no']" :title="report.hasSwelling ? 'Yes' : 'No'"></span>
+                  </td>
 
                   <td class="patient-dashboard-col-center">
                     <span :class="['app-badge', 'app-badge-small', report.alertCount === 0 ? 'app-badge-stable' : report.alertCount <= 2 ? 'app-badge-warning' : 'app-badge-alert']">{{ report.alertCount }}</span>
@@ -236,7 +248,7 @@ onMounted(() => {
           </div>
         </section>
 
-        <footer class="app-pagination">
+        <footer class="app-pagination patient-dashboard-pagination">
           <button type="button" class="app-pagination-button" :disabled="reportsCurrentPage === 1" @click="goToPreviousReportsPage">&lt;</button>
           <span class="app-pagination-text">Page {{ reportsCurrentPage }} of {{ reportsTotalPages }}</span>
           <button type="button" class="app-pagination-button" :disabled="reportsCurrentPage === reportsTotalPages" @click="goToNextReportsPage">&gt;</button>

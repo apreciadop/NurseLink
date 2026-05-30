@@ -109,7 +109,7 @@
   display: grid;
   grid-template-columns: 120px minmax(0, 1fr);
   gap: 0.8rem;
-  align-items: baseline;
+  align-items: center;
   margin-bottom: 0.6rem;
 }
 
@@ -129,6 +129,17 @@
   font-weight: 700;
   min-width: 0;
   word-break: break-word;
+}
+
+.patient-dashboard-infoitem .app-badge-small {
+  min-width: 48px;
+  padding: 0.28rem 0.55rem;
+}
+
+.patient-dashboard-infoitem .app-badge-stable,
+.patient-dashboard-infoitem .app-badge-warning,
+.patient-dashboard-infoitem .app-badge-alert {
+  color: var(--color-white);
 }
 
 .patient-dashboard-nurse {
@@ -183,6 +194,8 @@
 }
 
 .patient-dashboard-tablecard {
+  display: flex;
+  flex-direction: column;
   background: var(--color-card-bg);
   border: 1px solid var(--color-border-soft);
   border-radius: 1rem;
@@ -241,12 +254,17 @@
 }
 
 .patient-dashboard-tablebody {
-  padding: 1.1rem 1.25rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  min-height: 330px;
+  padding: 0.8rem 1.25rem 0.9rem;
+  box-sizing: border-box;
 }
 
 .patient-dashboard-tablewrap {
   width: 100%;
   overflow-x: auto;
+  overflow-y: hidden;
   background: var(--color-card-bg);
   border-radius: 0.85rem;
 }
@@ -259,13 +277,15 @@
 }
 
 .patient-dashboard-table thead th {
+  height: 34px;
+  padding: 0 0.8rem;
   background: var(--color-primary);
   color: var(--color-white);
   font-weight: 700;
   text-align: left;
-  padding: 0.95rem 1rem;
   white-space: nowrap;
-  font-size: 0.95rem;
+  font-size: 15px;
+  line-height: 34px;
 }
 
 .patient-dashboard-table thead th:first-child {
@@ -276,14 +296,21 @@
   border-top-right-radius: 0.75rem;
 }
 
+.patient-dashboard-table tbody tr {
+  height: 34px;
+}
+
 .patient-dashboard-table tbody td {
-  padding: 0.95rem 1rem;
+  height: 34px;
+  padding: 0 0.8rem;
   text-align: left;
   color: var(--color-text-main);
   border-bottom: 1px solid var(--color-border-soft);
   background: var(--color-card-bg);
   white-space: nowrap;
   vertical-align: middle;
+  line-height: 34px;
+  font-size: 15px;
 }
 
 .patient-dashboard-table tbody tr:nth-child(even) td {
@@ -302,6 +329,12 @@
 .patient-dashboard-table tbody td:nth-child(2),
 .patient-dashboard-table thead th:nth-child(3),
 .patient-dashboard-table tbody td:nth-child(3),
+.patient-dashboard-table thead th:nth-child(4),
+.patient-dashboard-table tbody td:nth-child(4),
+.patient-dashboard-table thead th:nth-child(5),
+.patient-dashboard-table tbody td:nth-child(5),
+.patient-dashboard-table thead th:nth-child(6),
+.patient-dashboard-table tbody td:nth-child(6),
 .patient-dashboard-table thead th:nth-child(7),
 .patient-dashboard-table tbody td:nth-child(7),
 .patient-dashboard-table thead th:nth-child(8),
@@ -315,6 +348,71 @@
   text-align: center !important;
 }
 
+.patient-dashboard-table .app-badge {
+  min-width: 78px;
+  padding: 0.28rem 0.6rem;
+  font-size: 0.74rem;
+}
+
+.patient-dashboard-table .app-badge-small {
+  min-width: 48px;
+  padding: 0.28rem 0.55rem;
+}
+
+.patient-dashboard-table .app-badge-note {
+  min-width: 60px;
+  padding: 0.28rem 0.55rem;
+}
+
+.patient-dashboard-pain {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.patient-dashboard-pain-alert {
+  color: var(--color-error);
+}
+
+.patient-dashboard-pain-ok {
+  color: var(--color-success);
+}
+
+.patient-dashboard-kpi-dot {
+  display: inline-block;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  vertical-align: middle;
+}
+
+.patient-dashboard-kpi-dot-yes {
+  background: var(--color-error);
+}
+
+.patient-dashboard-kpi-dot-no {
+  background: var(--color-success);
+}
+
+.patient-dashboard-table .app-action-button {
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  min-height: 28px;
+  padding: 0;
+  vertical-align: middle;
+}
+
+.patient-dashboard-table .app-action-icon {
+  width: 15px;
+  height: 15px;
+}
+
 .patient-dashboard-empty {
   text-align: center;
   color: var(--color-text-placeholder);
@@ -325,6 +423,12 @@
   border: 1px dashed var(--color-border-soft);
   border-radius: 0.85rem;
   background: var(--color-soft-panel-bg);
+}
+
+.patient-dashboard-pagination {
+  margin-top: auto;
+  padding-top: 0.55rem;
+  padding-bottom: 0.75rem;
 }
 
 @media (max-width: 1200px) {
@@ -341,6 +445,11 @@
 @media (max-width: 900px) {
   .patient-dashboard-twocolumns {
     grid-template-columns: 1fr;
+  }
+
+  .patient-dashboard-tablebody {
+    min-height: 330px;
+    padding: 0.8rem 1rem 0.9rem;
   }
 }
 
@@ -380,5 +489,29 @@
   .patient-dashboard-nurse {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .patient-dashboard-table thead th {
+    height: 34px;
+    padding: 0 0.75rem;
+    font-size: 0.85rem;
+    line-height: 34px;
+  }
+
+  .patient-dashboard-table tbody tr,
+  .patient-dashboard-table tbody td {
+    height: 34px;
+    line-height: 34px;
+  }
+
+  .patient-dashboard-table .app-badge {
+    min-width: 72px;
+    padding: 0.28rem 0.5rem;
+    font-size: 0.72rem;
+  }
+
+  .patient-dashboard-table .app-badge-small,
+  .patient-dashboard-infoitem .app-badge-small {
+    min-width: 44px;
   }
 }

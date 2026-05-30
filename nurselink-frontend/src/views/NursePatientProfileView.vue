@@ -1,18 +1,31 @@
 <script setup>
 import { onMounted, watch } from 'vue'
+import AppFeedbackModal from '../components/AppFeedbackModal.vue'
+import ReportModal from '../views/ReportModal.vue'
 import { useNursePatientProfile } from '../composables/useNursePatientProfile'
 
 const {
   patient,
-  reports,
   loading,
   errorMessage,
+  successMessage,
   reportsLoading,
   reportsErrorMessage,
   reportsCurrentPage,
   reportsTotalPages,
   paginatedReports,
+  isReportModalOpen,
+  reportDetailLoading,
+  reportDetailErrorMessage,
+  reportSaveLoading,
+  reportSaveErrorMessage,
+  selectedReport,
+  painLevels,
   loadPatientProfileData,
+  openViewReportModal,
+  closeViewReportModal,
+  saveNurseObservations,
+  clearNursePatientProfileFeedback,
   goBack,
   goToPreviousReportsPage,
   goToNextReportsPage
@@ -57,7 +70,7 @@ onMounted(() => {
             <header class="nurse-patient-profile-header">
               <div class="nurse-patient-profile-header-left">
                 <h2 class="nurse-patient-profile-name">{{ patient.name }} {{ patient.surname }}</h2>
-                <p class="nurse-patient-profile-id">Patient ID {{ patient.patientId }}</p>
+                <p class="nurse-patient-profile-id">Patient ID: {{ patient.patientId }}</p>
               </div>
 
               <div class="nurse-patient-profile-assigned">
@@ -121,7 +134,9 @@ onMounted(() => {
 
                   <div class="nurse-patient-profile-info-row">
                     <span class="nurse-patient-profile-label">Alerts</span>
-                    <strong class="nurse-patient-profile-value">{{ patient.alertCount }}</strong>
+                    <strong class="nurse-patient-profile-value">
+                      <span :class="['app-badge', 'app-badge-small', patient.alertCount === 0 ? 'app-badge-stable' : patient.alertCount <= 2 ? 'app-badge-warning' : 'app-badge-alert']">{{ patient.alertCount }}</span>
+                    </strong>
                   </div>
                 </div>
               </article>
@@ -161,12 +176,13 @@ onMounted(() => {
                   <th>Bleeding</th>
                   <th>Swelling</th>
                   <th>Alerts</th>
+                  <th>View</th>
                 </tr>
               </thead>
 
               <tbody>
                 <tr v-if="!paginatedReports.length">
-                  <td colspan="7" class="nurse-patient-profile-empty">No symptom reports found.</td>
+                  <td colspan="8" class="nurse-patient-profile-empty">No symptom reports found.</td>
                 </tr>
 
                 <tr v-for="report in paginatedReports" :key="report.reportId">
@@ -176,24 +192,48 @@ onMounted(() => {
                     <span :class="['app-badge', report.statusLabel === 'Stable' ? 'app-badge-stable' : report.statusLabel === 'Warning' ? 'app-badge-warning' : 'app-badge-alert']">{{ report.statusLabel }}</span>
                   </td>
 
-                  <td class="nurse-patient-profile-col-center">{{ report.painLevel ?? '-' }}</td>
-                  <td class="nurse-patient-profile-col-center">{{ report.hasFever ? 'Yes' : 'No' }}</td>
-                  <td class="nurse-patient-profile-col-center">{{ report.hasBleeding ? 'Yes' : 'No' }}</td>
-                  <td class="nurse-patient-profile-col-center">{{ report.hasSwelling ? 'Yes' : 'No' }}</td>
-                  <td class="nurse-patient-profile-col-center">{{ report.alertCount }}</td>
+                  <td class="nurse-patient-profile-col-center">
+                    <span :class="['nurse-patient-profile-pain', report.painLevel >= 7 ? 'nurse-patient-profile-pain-alert' : 'nurse-patient-profile-pain-ok']">{{ report.painLevel ?? '-' }}</span>
+                  </td>
+
+                  <td class="nurse-patient-profile-col-center">
+                    <span :class="['nurse-patient-profile-kpi-dot', report.hasFever ? 'nurse-patient-profile-kpi-dot-yes' : 'nurse-patient-profile-kpi-dot-no']" :title="report.hasFever ? 'Yes' : 'No'"></span>
+                  </td>
+
+                  <td class="nurse-patient-profile-col-center">
+                    <span :class="['nurse-patient-profile-kpi-dot', report.hasBleeding ? 'nurse-patient-profile-kpi-dot-yes' : 'nurse-patient-profile-kpi-dot-no']" :title="report.hasBleeding ? 'Yes' : 'No'"></span>
+                  </td>
+
+                  <td class="nurse-patient-profile-col-center">
+                    <span :class="['nurse-patient-profile-kpi-dot', report.hasSwelling ? 'nurse-patient-profile-kpi-dot-yes' : 'nurse-patient-profile-kpi-dot-no']" :title="report.hasSwelling ? 'Yes' : 'No'"></span>
+                  </td>
+
+                  <td class="nurse-patient-profile-col-center">
+                    <span :class="['app-badge', 'app-badge-small', report.alertCount === 0 ? 'app-badge-stable' : report.alertCount <= 2 ? 'app-badge-warning' : 'app-badge-alert']">{{ report.alertCount }}</span>
+                  </td>
+
+                  <td class="nurse-patient-profile-col-center">
+                    <button type="button" class="app-action-button" aria-label="View report" title="View report" @click="openViewReportModal(report)">
+                      <img src="/icons/view.png" alt="View report" class="app-action-icon" />
+                    </button>
+                  </td>
                 </tr>
               </tbody>
             </table>
           </div>
         </section>
 
-        <footer class="app-pagination">
+        <footer class="app-pagination nurse-patient-profile-pagination">
           <button type="button" class="app-pagination-button" :disabled="reportsCurrentPage === 1" @click="goToPreviousReportsPage">&lt;</button>
           <span class="app-pagination-text">Page {{ reportsCurrentPage }} of {{ reportsTotalPages }}</span>
           <button type="button" class="app-pagination-button" :disabled="reportsCurrentPage === reportsTotalPages" @click="goToNextReportsPage">&gt;</button>
         </footer>
       </section>
     </section>
+
+    <ReportModal :visible="isReportModalOpen" mode="nurse-review" :report="selectedReport || {}" :pain-levels="painLevels" :loading="reportDetailLoading" :submit-loading="reportSaveLoading" :error-message="reportDetailErrorMessage || reportSaveErrorMessage" @close="closeViewReportModal" @submit="saveNurseObservations" @update-nurse-observations="selectedReport.nurseObservations = $event" />
+
+    <AppFeedbackModal :visible="!!(successMessage || reportSaveErrorMessage)" :message="reportSaveErrorMessage || successMessage" :type="reportSaveErrorMessage ? 'error' : 'success'" @close="clearNursePatientProfileFeedback" />
   </section>
 </template>
 

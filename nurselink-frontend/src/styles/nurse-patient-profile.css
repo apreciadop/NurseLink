@@ -26,6 +26,8 @@
 }
 
 .nurse-patient-profile-card {
+  display: flex;
+  flex-direction: column;
   background: var(--color-card-bg);
   border: 1px solid var(--color-border-soft);
   border-radius: 1rem;
@@ -178,7 +180,7 @@
   display: grid;
   grid-template-columns: 120px minmax(0, 1fr);
   gap: 0.8rem;
-  align-items: baseline;
+  align-items: center;
 }
 
 .nurse-patient-profile-label {
@@ -195,6 +197,11 @@
   word-break: break-word;
 }
 
+.nurse-patient-profile-info-row .app-badge-small {
+  min-width: 48px;
+  padding: 0.28rem 0.55rem;
+}
+
 .nurse-patient-profile-section-header {
   padding: 1rem 1.25rem;
   border-bottom: 1px solid var(--color-border-soft);
@@ -209,12 +216,17 @@
 }
 
 .nurse-patient-profile-tablebody {
-  padding: 1.1rem 1.25rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  min-height: 330px;
+  padding: 0.8rem 1.25rem 0.9rem;
+  box-sizing: border-box;
 }
 
 .nurse-patient-profile-tablewrap {
   width: 100%;
   overflow-x: auto;
+  overflow-y: hidden;
   border-radius: 0.85rem;
 }
 
@@ -226,13 +238,15 @@
 }
 
 .nurse-patient-profile-table thead th {
+  height: 34px;
+  padding: 0 0.8rem;
   background: var(--color-primary);
   color: var(--color-white);
   font-weight: 700;
   text-align: left;
-  padding: 0.95rem 1rem;
   white-space: nowrap;
-  font-size: 0.95rem;
+  font-size: 15px;
+  line-height: 34px;
 }
 
 .nurse-patient-profile-table thead th:first-child {
@@ -243,17 +257,28 @@
   border-top-right-radius: 0.75rem;
 }
 
+.nurse-patient-profile-table tbody tr {
+  height: 34px;
+}
+
 .nurse-patient-profile-table tbody td {
-  padding: 0.95rem 1rem;
+  height: 34px;
+  padding: 0 0.8rem;
   color: var(--color-text-main);
   border-bottom: 1px solid var(--color-border-soft);
   background: var(--color-card-bg);
   white-space: nowrap;
   vertical-align: middle;
+  line-height: 34px;
+  font-size: 15px;
 }
 
 .nurse-patient-profile-table tbody tr:nth-child(even) td {
   background: var(--color-table-row-alt);
+}
+
+.nurse-patient-profile-table tbody tr:hover td {
+  background: var(--color-table-row-hover);
 }
 
 .nurse-patient-profile-table tbody tr:last-child td {
@@ -275,14 +300,82 @@
 .nurse-patient-profile-table thead th:nth-child(6),
 .nurse-patient-profile-table tbody td:nth-child(6),
 .nurse-patient-profile-table thead th:nth-child(7),
-.nurse-patient-profile-table tbody td:nth-child(7) {
+.nurse-patient-profile-table tbody td:nth-child(7),
+.nurse-patient-profile-table thead th:nth-child(8),
+.nurse-patient-profile-table tbody td:nth-child(8) {
   text-align: center;
+}
+
+.nurse-patient-profile-table .app-badge {
+  min-width: 78px;
+  padding: 0.28rem 0.6rem;
+  font-size: 0.74rem;
+}
+
+.nurse-patient-profile-table .app-badge-small {
+  min-width: 48px;
+  padding: 0.28rem 0.55rem;
+}
+
+.nurse-patient-profile-pain {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.nurse-patient-profile-pain-alert {
+  color: var(--color-error);
+}
+
+.nurse-patient-profile-pain-ok {
+  color: var(--color-success);
+}
+
+.nurse-patient-profile-kpi-dot {
+  display: inline-block;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  vertical-align: middle;
+}
+
+.nurse-patient-profile-kpi-dot-yes {
+  background: var(--color-error);
+}
+
+.nurse-patient-profile-kpi-dot-no {
+  background: var(--color-success);
+}
+
+.nurse-patient-profile-table .app-action-button {
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  min-height: 28px;
+  padding: 0;
+  vertical-align: middle;
+}
+
+.nurse-patient-profile-table .app-action-icon {
+  width: 15px;
+  height: 15px;
 }
 
 .nurse-patient-profile-empty {
   text-align: center;
   color: var(--color-text-placeholder);
   padding: 2rem 1rem;
+}
+
+.nurse-patient-profile-pagination {
+  margin-top: auto;
+  padding-top: 0.55rem;
+  padding-bottom: 0.75rem;
 }
 
 @media (max-width: 1100px) {
@@ -322,8 +415,31 @@
     gap: 0.2rem;
   }
 
-  .nurse-patient-profile-table thead th,
+  .nurse-patient-profile-tablebody {
+    min-height: 330px;
+  }
+
+  .nurse-patient-profile-table thead th {
+    height: 34px;
+    padding: 0 0.75rem;
+    font-size: 0.85rem;
+    line-height: 34px;
+  }
+
+  .nurse-patient-profile-table tbody tr,
   .nurse-patient-profile-table tbody td {
-    padding: 0.8rem 0.85rem;
+    height: 34px;
+    line-height: 34px;
+  }
+
+  .nurse-patient-profile-table .app-badge {
+    min-width: 72px;
+    padding: 0.28rem 0.5rem;
+    font-size: 0.72rem;
+  }
+
+  .nurse-patient-profile-table .app-badge-small,
+  .nurse-patient-profile-info-row .app-badge-small {
+    min-width: 44px;
   }
 }

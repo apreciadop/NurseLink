@@ -80,16 +80,26 @@ onMounted(() => {
             <template v-if="patientsWithAlerts.length">
               <div class="dashboard-table-wrapper">
                 <table class="dashboard-table dashboard-table-alerts">
+                  <colgroup>
+                    <col class="dashboard-col-patient" />
+                    <col class="dashboard-col-nurse" />
+                    <col class="dashboard-col-date" />
+                    <col class="dashboard-col-status" />
+                    <col class="dashboard-col-kpis" />
+                  </colgroup>
+
                   <thead>
                     <tr>
                       <th>Patient</th>
                       <th>Nurse</th>
                       <th>Date</th>
                       <th>Status</th>
-                      <th>Pain</th>
-                      <th>Fever</th>
-                      <th>Bleeding</th>
-                      <th>Swelling</th>
+                      <th class="dashboard-kpi-header">
+                        <span>Pain</span>
+                        <span>Fever</span>
+                        <span>Bled</span>
+                        <span>Swell</span>
+                      </th>
                     </tr>
                   </thead>
 
@@ -104,10 +114,14 @@ onMounted(() => {
                         <span v-else>-</span>
                       </td>
 
-                      <td class="dashboard-center-cell">{{ patient.reportPain ?? '-' }}</td>
-                      <td class="dashboard-center-cell">{{ patient.reportFever ? 'Yes' : 'No' }}</td>
-                      <td class="dashboard-center-cell">{{ patient.reportBleeding ? 'Yes' : 'No' }}</td>
-                      <td class="dashboard-center-cell">{{ patient.reportSwelling ? 'Yes' : 'No' }}</td>
+                      <td class="dashboard-kpis-cell">
+                        <div class="dashboard-kpis-content">
+                          <span :class="['dashboard-kpi-pain', patient.reportPain >= 7 ? 'dashboard-kpi-pain-alert' : 'dashboard-kpi-pain-ok']">{{ patient.reportPain ?? '-' }}</span>
+                          <span :class="['dashboard-kpi-dot', patient.reportFever ? 'dashboard-kpi-dot-yes' : 'dashboard-kpi-dot-no']" :title="patient.reportFever ? 'Fever: Yes' : 'Fever: No'"></span>
+                          <span :class="['dashboard-kpi-dot', patient.reportBleeding ? 'dashboard-kpi-dot-yes' : 'dashboard-kpi-dot-no']" :title="patient.reportBleeding ? 'Bleeding: Yes' : 'Bleeding: No'"></span>
+                          <span :class="['dashboard-kpi-dot', patient.reportSwelling ? 'dashboard-kpi-dot-yes' : 'dashboard-kpi-dot-no']" :title="patient.reportSwelling ? 'Swelling: Yes' : 'Swelling: No'"></span>
+                        </div>
+                      </td>
                     </tr>
                   </tbody>
                 </table>

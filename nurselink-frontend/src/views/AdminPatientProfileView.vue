@@ -15,6 +15,8 @@ const {
   reports,
   reportsLoading,
   reportsErrorMessage,
+  reportsCurrentPage,
+  reportsTotalPages,
   hasReports,
   isReportModalOpen,
   reportDetailLoading,
@@ -26,7 +28,9 @@ const {
   submitUpdatePatient,
   openViewReportModal,
   closeViewReportModal,
-  clearSaveFeedback
+  clearSaveFeedback,
+  goToPreviousReportsPage,
+  goToNextReportsPage
 } = useAdminPatientProfile()
 
 onMounted(() => {
@@ -47,28 +51,27 @@ onMounted(() => {
     <section v-else class="patient-profile-main">
       <section class="patient-profile-toprow">
         <div class="patient-profile-left">
+          <div class="patient-profile-summary patient-profile-summary-top">
+            <h2 class="patient-profile-name">{{ patientForm.name }} {{ patientForm.surname }}</h2>
+            <p class="patient-profile-id">Patient ID: {{ patientForm.patientId }}</p>
+          </div>
+
           <div class="patient-profile-photo-column">
             <div class="patient-profile-photo">
               <img v-if="patientForm.photo" :src="patientForm.photo" alt="Patient photo" />
               <span v-else>No photo</span>
             </div>
 
-            <span :class="['app-badge', patientForm.statusLabel === 'Stable' ? 'app-badge-stable' : patientForm.statusLabel === 'Warning' ? 'app-badge-warning' : 'app-badge-alert']">
-              {{ patientForm.statusLabel }}
-            </span>
-          </div>
-
-          <div class="patient-profile-summary">
-            <h2 class="patient-profile-name">{{ patientForm.name }} {{ patientForm.surname }}</h2>
-
-            <p class="patient-profile-id">Patient ID {{ patientForm.patientId }}</p>
-
-            <label class="patient-profile-photo-button" for="patientPhotoInput">
-              <img src="/icons/camera.png" alt="Change Photo" class="patient-profile-photo-button-icon" />
+            <label for="patientPhotoInput" class="patient-profile-photo-button">
+              <img src="/icons/cameraBlue.png" alt="Change Photo" class="patient-profile-photo-button-icon" />
               <span>Change Photo</span>
             </label>
 
             <input id="patientPhotoInput" type="file" accept="image/*" class="patient-profile-fileinput" @change="handlePhotoChange" />
+
+            <span :class="['app-badge', patientForm.statusLabel === 'Stable' ? 'app-badge-stable' : patientForm.statusLabel === 'Warning' ? 'app-badge-warning' : 'app-badge-alert']">
+              {{ patientForm.statusLabel }}
+            </span>
           </div>
         </div>
 
@@ -187,10 +190,21 @@ onMounted(() => {
                     <span :class="['app-badge', report.statusLabel === 'Stable' ? 'app-badge-stable' : report.statusLabel === 'Warning' ? 'app-badge-warning' : 'app-badge-alert']">{{ report.statusLabel }}</span>
                   </td>
 
-                  <td class="patient-profile-col-center">{{ report.painLevel ?? '-' }}</td>
-                  <td class="patient-profile-col-center">{{ report.hasFever ? 'Yes' : 'No' }}</td>
-                  <td class="patient-profile-col-center">{{ report.hasBleeding ? 'Yes' : 'No' }}</td>
-                  <td class="patient-profile-col-center">{{ report.hasSwelling ? 'Yes' : 'No' }}</td>
+                  <td class="patient-profile-col-center">
+                    <span :class="['patient-profile-pain', report.painLevel >= 7 ? 'patient-profile-pain-alert' : 'patient-profile-pain-ok']">{{ report.painLevel ?? '-' }}</span>
+                  </td>
+
+                  <td class="patient-profile-col-center">
+                    <span :class="['patient-profile-kpi-dot', report.hasFever ? 'patient-profile-kpi-dot-yes' : 'patient-profile-kpi-dot-no']" :title="report.hasFever ? 'Yes' : 'No'"></span>
+                  </td>
+
+                  <td class="patient-profile-col-center">
+                    <span :class="['patient-profile-kpi-dot', report.hasBleeding ? 'patient-profile-kpi-dot-yes' : 'patient-profile-kpi-dot-no']" :title="report.hasBleeding ? 'Yes' : 'No'"></span>
+                  </td>
+
+                  <td class="patient-profile-col-center">
+                    <span :class="['patient-profile-kpi-dot', report.hasSwelling ? 'patient-profile-kpi-dot-yes' : 'patient-profile-kpi-dot-no']" :title="report.hasSwelling ? 'Yes' : 'No'"></span>
+                  </td>
 
                   <td class="patient-profile-col-center">
                     <span :class="['app-badge', 'app-badge-small', report.alertCount === 0 ? 'app-badge-stable' : report.alertCount <= 2 ? 'app-badge-warning' : 'app-badge-alert']">{{ report.alertCount }}</span>
@@ -205,6 +219,12 @@ onMounted(() => {
               </tbody>
             </table>
           </div>
+
+          <footer v-if="hasReports" class="app-pagination patient-profile-pagination">
+            <button type="button" class="app-pagination-button" :disabled="reportsCurrentPage === 1 || reportsLoading" @click="goToPreviousReportsPage">&lt;</button>
+            <span class="app-pagination-text">Page {{ reportsCurrentPage }} of {{ reportsTotalPages }}</span>
+            <button type="button" class="app-pagination-button" :disabled="reportsCurrentPage === reportsTotalPages || reportsLoading" @click="goToNextReportsPage">&gt;</button>
+          </footer>
         </div>
       </section>
     </section>

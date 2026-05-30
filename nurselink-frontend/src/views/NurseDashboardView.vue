@@ -131,7 +131,7 @@ onMounted(() => {
           </div>
         </section>
 
-        <section class="nurse-dashboard-tablebody">
+        <section class="nurse-dashboard-tablebody nurse-dashboard-patients-body">
           <div class="nurse-dashboard-tablewrap">
             <table class="nurse-dashboard-table">
               <thead>
@@ -176,7 +176,9 @@ onMounted(() => {
                     <span :class="['app-badge', patient.statusLabel === 'Stable' ? 'app-badge-stable' : patient.statusLabel === 'Warning' ? 'app-badge-warning' : 'app-badge-alert']">{{ patient.statusLabel }}</span>
                   </td>
 
-                  <td class="nurse-dashboard-col-center">{{ patient.alertCount }}</td>
+                  <td class="nurse-dashboard-col-center">
+                    <span :class="['app-badge', 'app-badge-small', patient.alertCount === 0 ? 'app-badge-stable' : patient.alertCount <= 2 ? 'app-badge-warning' : 'app-badge-alert']">{{ patient.alertCount }}</span>
+                  </td>
 
                   <td class="nurse-dashboard-col-center">
                     <button type="button" class="app-action-button" aria-label="View patient profile" title="View patient profile" @click.stop="openPatientProfile(patient)">
@@ -189,7 +191,7 @@ onMounted(() => {
           </div>
         </section>
 
-        <footer class="app-pagination">
+        <footer class="app-pagination nurse-dashboard-pagination">
           <button type="button" class="app-pagination-button" :disabled="currentPage === 1" @click="goToPreviousPage">&lt;</button>
           <span class="app-pagination-text">Page {{ currentPage }} of {{ totalPages }}</span>
           <button type="button" class="app-pagination-button" :disabled="currentPage === totalPages" @click="goToNextPage">&gt;</button>
@@ -204,7 +206,7 @@ onMounted(() => {
           </h2>
         </header>
 
-        <section class="nurse-dashboard-tablebody">
+        <section class="nurse-dashboard-tablebody nurse-dashboard-reports-body">
           <div v-if="!selectedPatient" class="nurse-dashboard-empty nurse-dashboard-empty-panel">Select a patient to view symptom reports.</div>
 
           <div v-else-if="reportsLoading" class="nurse-dashboard-empty nurse-dashboard-empty-panel">Loading reports...</div>
@@ -238,11 +240,25 @@ onMounted(() => {
                     <span :class="['app-badge', report.statusLabel === 'Stable' ? 'app-badge-stable' : report.statusLabel === 'Warning' ? 'app-badge-warning' : 'app-badge-alert']">{{ report.statusLabel }}</span>
                   </td>
 
-                  <td>{{ report.painLevel ?? '-' }}</td>
-                  <td>{{ report.hasFever ? 'Yes' : 'No' }}</td>
-                  <td>{{ report.hasBleeding ? 'Yes' : 'No' }}</td>
-                  <td>{{ report.hasSwelling ? 'Yes' : 'No' }}</td>
-                  <td class="nurse-dashboard-col-center">{{ report.alertCount }}</td>
+                  <td class="nurse-dashboard-col-center">
+                    <span :class="['nurse-dashboard-pain', report.painLevel >= 7 ? 'nurse-dashboard-pain-alert' : 'nurse-dashboard-pain-ok']">{{ report.painLevel ?? '-' }}</span>
+                  </td>
+
+                  <td class="nurse-dashboard-col-center">
+                    <span :class="['nurse-dashboard-kpi-dot', report.hasFever ? 'nurse-dashboard-kpi-dot-yes' : 'nurse-dashboard-kpi-dot-no']" :title="report.hasFever ? 'Yes' : 'No'"></span>
+                  </td>
+
+                  <td class="nurse-dashboard-col-center">
+                    <span :class="['nurse-dashboard-kpi-dot', report.hasBleeding ? 'nurse-dashboard-kpi-dot-yes' : 'nurse-dashboard-kpi-dot-no']" :title="report.hasBleeding ? 'Yes' : 'No'"></span>
+                  </td>
+
+                  <td class="nurse-dashboard-col-center">
+                    <span :class="['nurse-dashboard-kpi-dot', report.hasSwelling ? 'nurse-dashboard-kpi-dot-yes' : 'nurse-dashboard-kpi-dot-no']" :title="report.hasSwelling ? 'Yes' : 'No'"></span>
+                  </td>
+
+                  <td class="nurse-dashboard-col-center">
+                    <span :class="['app-badge', 'app-badge-small', report.alertCount === 0 ? 'app-badge-stable' : report.alertCount <= 2 ? 'app-badge-warning' : 'app-badge-alert']">{{ report.alertCount }}</span>
+                  </td>
 
                   <td class="nurse-dashboard-col-center">
                     <button type="button" class="app-action-button" aria-label="View report" title="View report" @click.stop="openViewReportModal(report)">
@@ -255,7 +271,7 @@ onMounted(() => {
           </div>
         </section>
 
-        <footer class="app-pagination">
+        <footer class="app-pagination nurse-dashboard-pagination">
           <button type="button" class="app-pagination-button" :disabled="reportsCurrentPage === 1" @click="goToPreviousReportsPage">&lt;</button>
           <span class="app-pagination-text">Page {{ reportsCurrentPage }} of {{ reportsTotalPages }}</span>
           <button type="button" class="app-pagination-button" :disabled="reportsCurrentPage === reportsTotalPages" @click="goToNextReportsPage">&gt;</button>

@@ -64,8 +64,8 @@ export async function getSurgeryTypes() {
   return await apiRequest('/api/SurgeryType', { method: 'GET' }, 'Error getting surgery types.')
 }
 
-export async function getReportsByPatient(patientId) {
-  return await apiRequest(`/api/Reports/patient/${patientId}`, { method: 'GET' }, 'Error loading patient reports.')
+export async function getReportsByPatient(patientId, pageNumber = 1, pageSize = 8) {
+  return await apiRequest(`/api/Reports/patient/${patientId}?pageNumber=${pageNumber}&pageSize=${pageSize}`, { method: 'GET' }, 'Error loading patient reports.')
 }
 
 export async function getReportById(reportId) {

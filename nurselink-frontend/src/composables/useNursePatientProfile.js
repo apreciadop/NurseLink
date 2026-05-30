@@ -5,6 +5,10 @@ import {
   getReportsByPatient
 } from '../services/patientService'
 import {
+  getReportById,
+  nurseObservations
+} from '../services/nurseService'
+import {
   formatDate,
   formatDateTime
 } from '../utils/dateUtils'
@@ -18,12 +22,22 @@ export function useNursePatientProfile() {
 
   const loading = ref(false)
   const errorMessage = ref('')
+  const successMessage = ref('')
 
   const reportsLoading = ref(false)
   const reportsErrorMessage = ref('')
 
   const reportsCurrentPage = ref(1)
-  const reportsPageSize = ref(5)
+  const reportsPageSize = ref(8)
+
+  const isReportModalOpen = ref(false)
+  const reportDetailLoading = ref(false)
+  const reportDetailErrorMessage = ref('')
+  const reportSaveLoading = ref(false)
+  const reportSaveErrorMessage = ref('')
+  const selectedReport = ref(null)
+
+  const painLevels = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
   const patientId = computed(() => Number(route.params.id))
 
@@ -142,6 +156,8 @@ export function useNursePatientProfile() {
       hasFever: report.hasFever ?? report.fever ?? false,
       hasBleeding: report.hasBleeding ?? report.bleeding ?? false,
       hasSwelling: report.hasSwelling ?? report.swelling ?? false,
+      observations: report.observations ?? '',
+      nurseObservations: report.nurseObservations ?? '',
       alertCount
     }
   }
@@ -156,6 +172,11 @@ export function useNursePatientProfile() {
 
     return reports.value.slice(start, end)
   })
+
+  const clearNursePatientProfileFeedback = () => {
+    successMessage.value = ''
+    reportSaveErrorMessage.value = ''
+  }
 
   const loadPatient = async () => {
     loading.value = true
@@ -194,6 +215,63 @@ export function useNursePatientProfile() {
     await loadReports()
   }
 
+  const openViewReportModal = async (report) => {
+    if (!report?.reportId) {
+      return
+    }
+
+    successMessage.value = ''
+    isReportModalOpen.value = true
+    reportDetailLoading.value = true
+    reportDetailErrorMessage.value = ''
+    reportSaveErrorMessage.value = ''
+    selectedReport.value = null
+
+    try {
+      const data = await getReportById(report.reportId)
+      selectedReport.value = mapReport(data)
+    } catch (error) {
+      reportDetailErrorMessage.value = error.message || 'Error loading report details.'
+    } finally {
+      reportDetailLoading.value = false
+    }
+  }
+
+  const closeViewReportModal = () => {
+    isReportModalOpen.value = false
+    reportDetailLoading.value = false
+    reportDetailErrorMessage.value = ''
+    reportSaveErrorMessage.value = ''
+    reportSaveLoading.value = false
+    selectedReport.value = null
+  }
+
+  const saveNurseObservations = async () => {
+    if (!selectedReport.value?.reportId) {
+      return
+    }
+
+    reportSaveErrorMessage.value = ''
+    successMessage.value = ''
+    reportSaveLoading.value = true
+
+    try {
+      const data = await nurseObservations(selectedReport.value.reportId, {
+        nurseObservations: selectedReport.value.nurseObservations?.trim() || null
+      })
+
+      selectedReport.value = mapReport(data)
+      await loadReports()
+
+      successMessage.value = 'Nurse observations saved successfully.'
+      closeViewReportModal()
+    } catch (error) {
+      reportSaveErrorMessage.value = error.message || 'Error saving nurse observations.'
+    } finally {
+      reportSaveLoading.value = false
+    }
+  }
+
   const goBack = () => {
     router.push('/nurse/dashboard')
   }
@@ -215,14 +293,26 @@ export function useNursePatientProfile() {
     reports,
     loading,
     errorMessage,
+    successMessage,
     reportsLoading,
     reportsErrorMessage,
     reportsCurrentPage,
     reportsTotalPages,
     paginatedReports,
+    isReportModalOpen,
+    reportDetailLoading,
+    reportDetailErrorMessage,
+    reportSaveLoading,
+    reportSaveErrorMessage,
+    selectedReport,
+    painLevels,
     loadPatient,
     loadReports,
     loadPatientProfileData,
+    openViewReportModal,
+    closeViewReportModal,
+    saveNurseObservations,
+    clearNursePatientProfileFeedback,
     goBack,
     goToPreviousReportsPage,
     goToNextReportsPage

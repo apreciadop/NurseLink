@@ -52,10 +52,13 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 22px;
-  align-items: start;
+  align-items: stretch;
 }
 
 .dashboard-panel {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 315px);
   background: var(--color-card-bg);
   border: 1px solid var(--color-border-soft);
   border-radius: var(--radius-card);
@@ -77,12 +80,16 @@
 }
 
 .dashboard-panelbody {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
   padding: 16px 16px 18px;
   min-height: 300px;
 }
 
 .dashboard-panelbody-large {
   display: flex;
+  flex: 1;
   flex-direction: column;
 }
 
@@ -91,6 +98,7 @@
 }
 
 .dashboard-pagination {
+  margin-top: auto;
   padding: 1rem 0 0;
 }
 
@@ -116,18 +124,22 @@
 }
 
 .dashboard-table thead th {
+  height: 32px;
   background: var(--color-primary);
   color: var(--color-white);
   font-weight: 600;
   text-align: left;
-  padding: 11px 6px;
+  padding: 0 6px;
   white-space: nowrap;
   font-size: 0.82rem;
+  line-height: 32px;
   letter-spacing: 0;
+  vertical-align: middle;
 }
 
 .dashboard-table thead th:first-child {
   border-top-left-radius: 0.75rem;
+  padding-left: 24px;
 }
 
 .dashboard-table thead th:last-child {
@@ -136,16 +148,22 @@
 }
 
 .dashboard-table tbody td {
-  padding: 11px 6px;
+  height: 44px;
+  padding: 0 6px;
   text-align: left;
   color: var(--color-text-main);
   border-bottom: 1px solid var(--color-border-soft);
   white-space: nowrap;
   font-weight: 500;
   background: var(--color-card-bg);
-  vertical-align: middle;
+  vertical-align: middle !important;
   overflow: hidden;
   text-overflow: ellipsis;
+  line-height: 44px;
+}
+
+.dashboard-table tbody td:first-child {
+  padding-left: 24px;
 }
 
 .dashboard-name-cell {
@@ -168,6 +186,10 @@
   text-align: center;
 }
 
+.dashboard-table tbody tr {
+  height: 44px;
+}
+
 .dashboard-table tbody tr:nth-child(even) td {
   background: var(--color-table-row-alt);
 }
@@ -188,66 +210,133 @@
   border-bottom: none;
 }
 
-.dashboard-table-alerts th:nth-child(1),
-.dashboard-table-alerts td:nth-child(1) {
+.dashboard-col-patient {
+  width: 22%;
+}
+
+.dashboard-col-nurse {
+  width: 22%;
+}
+
+.dashboard-col-date {
   width: 16%;
 }
 
-.dashboard-table-alerts th:nth-child(2),
-.dashboard-table-alerts td:nth-child(2) {
-  width: 15%;
+.dashboard-col-status {
+  width: 16%;
 }
 
+.dashboard-col-kpis {
+  width: 24%;
+}
+
+.dashboard-table-alerts th:first-child,
+.dashboard-table-alerts td:first-child,
+.dashboard-table-alerts th:nth-child(2),
+.dashboard-table-alerts td:nth-child(2),
 .dashboard-table-alerts th:nth-child(3),
 .dashboard-table-alerts td:nth-child(3) {
-  width: 15%;
+  text-align: left !important;
 }
 
 .dashboard-table-alerts th:nth-child(4),
-.dashboard-table-alerts td:nth-child(4) {
-  width: 15%;
-  text-align: center;
+.dashboard-table-alerts td:nth-child(4),
+.dashboard-table-alerts th:nth-child(5),
+.dashboard-table-alerts td:nth-child(5) {
+  text-align: center !important;
 }
 
-.dashboard-table-alerts td:nth-child(4) {
-  overflow: hidden;
+.dashboard-kpi-header {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  align-items: center;
+  justify-items: center;
+  gap: 8px;
+  height: 32px;
+  padding: 0 8px !important;
+  text-align: center !important;
+  line-height: normal !important;
+}
+
+.dashboard-kpi-header span {
+  position: relative;
+  width: 100%;
+  text-align: center;
+  line-height: 32px;
+}
+
+.dashboard-kpi-header span:not(:last-child)::after {
+  content: "/";
+  position: absolute;
+  right: -6px;
+  color: var(--color-white);
+  font-weight: 700;
+}
+
+.dashboard-kpis-cell {
+  padding-left: 8px !important;
+  padding-right: 8px !important;
+  text-align: center !important;
+  vertical-align: middle !important;
+  line-height: normal !important;
+}
+
+.dashboard-kpis-content {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  align-items: center;
+  justify-items: center;
+  gap: 8px;
+  width: 100%;
+  height: 44px;
+}
+
+.dashboard-kpi-pain {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.dashboard-kpi-pain-alert {
+  color: var(--color-error);
+}
+
+.dashboard-kpi-pain-ok {
+  color: var(--color-success);
+}
+
+.dashboard-kpi-dot {
+  display: inline-block;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  vertical-align: middle;
+}
+
+.dashboard-kpi-dot-yes {
+  background: var(--color-error);
+}
+
+.dashboard-kpi-dot-no {
+  background: var(--color-success);
 }
 
 .dashboard-status-badge {
-  width: 78px;
-  min-width: 78px;
-  max-width: 78px;
+  width: 84px;
+  min-width: 84px;
+  max-width: 84px;
   padding: 0.42rem 0.45rem;
   box-sizing: border-box;
 }
 
-.dashboard-table-alerts th:nth-child(5),
-.dashboard-table-alerts td:nth-child(5) {
-  width: 7%;
-  text-align: center;
-}
-
-.dashboard-table-alerts th:nth-child(6),
-.dashboard-table-alerts td:nth-child(6) {
-  width: 9%;
-  text-align: center;
-}
-
-.dashboard-table-alerts th:nth-child(7),
-.dashboard-table-alerts td:nth-child(7) {
-  width: 11%;
-  text-align: center;
-}
-
-.dashboard-table-alerts th:nth-child(8),
-.dashboard-table-alerts td:nth-child(8) {
-  width: 12%;
-  text-align: center;
-}
-
 .dashboard-table-unassigned th:nth-child(1),
 .dashboard-table-unassigned td:nth-child(1) {
-  width: 36%;
+  width: 38%;
 }
 
 .dashboard-table-unassigned th:nth-child(2),
@@ -257,13 +346,27 @@
 
 .dashboard-table-unassigned th:nth-child(3),
 .dashboard-table-unassigned td:nth-child(3) {
-  width: 22%;
+  width: 20%;
 }
 
 .dashboard-table-unassigned th:nth-child(4),
 .dashboard-table-unassigned td:nth-child(4) {
   width: 12%;
   text-align: center;
+}
+
+.dashboard-table-unassigned .app-action-button {
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  min-height: 28px;
+  padding: 0;
+  vertical-align: middle;
+}
+
+.dashboard-table-unassigned .app-action-icon {
+  width: 15px;
+  height: 15px;
 }
 
 .admin-dashboardmessage {
@@ -336,9 +439,17 @@
 }
 
 .dashboard-modalpatient-info p {
+  display: grid;
+  grid-template-columns: 76px 1fr;
+  column-gap: 12px;
   margin: 0 0 10px;
   color: var(--color-text-main);
   line-height: 1.4;
+}
+
+.dashboard-modalpatient-info strong {
+  color: var(--color-text-main);
+  font-weight: 700;
 }
 
 .dashboard-modalfield {
@@ -394,6 +505,10 @@
     grid-template-columns: 1fr;
   }
 
+  .dashboard-panel {
+    min-height: 420px;
+  }
+
   .dashboard-table-wrapper {
     overflow-x: auto;
   }
@@ -418,6 +533,10 @@
     font-size: 1.6rem;
   }
 
+  .dashboard-panel {
+    min-height: 360px;
+  }
+
   .dashboard-panelbody {
     min-height: 240px;
     padding: 12px 12px 14px;
@@ -430,7 +549,12 @@
 
   .dashboard-table thead th,
   .dashboard-table tbody td {
-    padding: 9px 8px;
+    padding: 0 8px;
+  }
+
+  .dashboard-table thead th:first-child,
+  .dashboard-table tbody td:first-child {
+    padding-left: 14px;
   }
 
   .dashboard-modal {

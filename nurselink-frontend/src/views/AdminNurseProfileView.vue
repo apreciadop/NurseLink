@@ -13,11 +13,15 @@ const {
   filteredAssignedPatients,
   assignedPatientsCount,
   assignedAlertsCount,
+  assignedPatientsCurrentPage,
+  assignedPatientsTotalPages,
   patientSearchTerm,
   loadProfileData,
   handlePhotoChange,
   submitUpdateNurse,
-  clearSaveFeedback
+  clearSaveFeedback,
+  goToPreviousAssignedPatientsPage,
+  goToNextAssignedPatientsPage
 } = useAdminNurseProfile()
 
 onMounted(() => {
@@ -38,14 +42,16 @@ onMounted(() => {
     <section v-else class="nurse-profile-main">
       <section class="nurse-profile-toprow">
         <section class="nurse-profile-left">
-          <div class="nurse-profile-photo">
-            <img v-if="nurseForm.photo" :src="nurseForm.photo" alt="Nurse photo" />
-            <span v-else>No photo</span>
+          <div class="nurse-profile-summary nurse-profile-summary-top">
+            <h2 class="nurse-profile-name">{{ nurseForm.name }} {{ nurseForm.surname }}</h2>
+            <p class="nurse-profile-id">Employee ID: {{ nurseForm.nurseId }}</p>
           </div>
 
-          <div class="nurse-profile-summary">
-            <h2 class="nurse-profile-name">{{ nurseForm.name }} {{ nurseForm.surname }}</h2>
-            <p class="nurse-profile-id">Employee ID {{ nurseForm.nurseId }}</p>
+          <div class="nurse-profile-photo-column">
+            <div class="nurse-profile-photo">
+              <img v-if="nurseForm.photo" :src="nurseForm.photo" alt="Nurse photo" />
+              <span v-else>No photo</span>
+            </div>
 
             <label for="profilePhotoInput" class="nurse-profile-photo-button">
               <img src="/icons/cameraBlue.png" alt="Change Photo" class="nurse-profile-photo-button-icon" />
@@ -152,11 +158,21 @@ onMounted(() => {
                     <span :class="['app-badge', patient.status === 'Stable' ? 'app-badge-stable' : patient.status === 'Warning' ? 'app-badge-warning' : 'app-badge-alert']">{{ patient.status }}</span>
                   </td>
 
-                  <td>{{ patient.alertCount }}</td>
+                  <td>
+                    <span :class="['app-badge', 'app-badge-small', patient.alertCount === 0 ? 'app-badge-stable' : patient.alertCount <= 2 ? 'app-badge-warning' : 'app-badge-alert']">
+                      {{ patient.alertCount }}
+                    </span>
+                  </td>
                 </tr>
               </tbody>
             </table>
           </div>
+
+          <footer v-if="assignedPatientsTotalPages > 1" class="app-pagination nurse-profile-pagination">
+            <button type="button" class="app-pagination-button" :disabled="assignedPatientsCurrentPage === 1" @click="goToPreviousAssignedPatientsPage">&lt;</button>
+            <span class="app-pagination-text">Page {{ assignedPatientsCurrentPage }} of {{ assignedPatientsTotalPages }}</span>
+            <button type="button" class="app-pagination-button" :disabled="assignedPatientsCurrentPage === assignedPatientsTotalPages" @click="goToNextAssignedPatientsPage">&gt;</button>
+          </footer>
         </section>
       </section>
     </section>
